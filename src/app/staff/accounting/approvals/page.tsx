@@ -443,7 +443,7 @@ export default function AccountingApprovalsPage() {
                         <TableCell>
                           <div className="flex flex-col gap-0.5">
                             <span className="font-medium">{submittedAt.toLocaleDateString('en-IN')}</span>
-                            <span className="text-xs text-muted-foreground">{submittedAt.toLocaleTimeString('en-IN')}</span>
+                            {/* <span className="text-xs text-muted-foreground">{submittedAt.toLocaleTimeString('en-IN')}</span> */}
                           </div>
                         </TableCell>
                         <TableCell>

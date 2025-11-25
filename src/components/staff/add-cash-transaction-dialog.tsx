@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import {
@@ -62,6 +62,15 @@ export function AddCashTransactionDialog({ branch, open: externalOpen, onOpenCha
     cash_in: 0,
     notes: '',
   });
+
+  // Auto-switch transaction type based on bill_status
+  useEffect(() => {
+    if (formData.bill_status === 'Yet to pay') {
+      setTransactionType('cash_out');
+    } else if (formData.bill_status === 'Refund') {
+      setTransactionType('cash_in');
+    }
+  }, [formData.bill_status]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -236,8 +245,8 @@ export function AddCashTransactionDialog({ branch, open: externalOpen, onOpenCha
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Paid">Paid</SelectItem>
-                <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="Cancelled">Cancelled</SelectItem>
+                <SelectItem value="Yet to pay">Yet to pay</SelectItem>
+                <SelectItem value="Refund">Refund</SelectItem>
               </SelectContent>
             </Select>
           </div>

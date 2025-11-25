@@ -6,7 +6,7 @@ export interface CashTransaction {
   staff_id: string;
   branch: string;
   transaction_date: string;
-  bill_status: 'Paid' | 'Pending' | 'Cancelled';
+  bill_status: 'Paid' | 'Pending' | 'Cancelled' | 'Yet to pay' | 'Refund';
   primary_list: string;
   nature_of_expense: string;
   cash_out: number;
@@ -31,7 +31,7 @@ export interface CashTransaction {
 
 export interface CashTransactionFormData {
   transaction_date: string;
-  bill_status: 'Paid' | 'Pending' | 'Cancelled';
+  bill_status: 'Paid' | 'Pending' | 'Cancelled' | 'Yet to pay' | 'Refund';
   primary_list: string;
   nature_of_expense: string;
   cash_out?: number;

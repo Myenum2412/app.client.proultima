@@ -249,12 +249,14 @@ export default function StaffCashbookPage() {
                   <SelectTrigger className="h-10 w-full">
                     <SelectValue placeholder="All" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="Paid">Paid</SelectItem>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Cancelled">Cancelled</SelectItem>
-                  </SelectContent>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="Paid">Paid</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Cancelled">Cancelled</SelectItem>
+                  <SelectItem value="Yet to pay">Yet to pay</SelectItem>
+                  <SelectItem value="Refund">Refund</SelectItem>
+                </SelectContent>
                 </Select>
               </div>
 
@@ -358,6 +360,10 @@ export default function StaffCashbookPage() {
                               ? 'bg-green-100 text-green-800'
                               : transaction.bill_status === 'Pending'
                               ? 'bg-yellow-100 text-yellow-800'
+                              : transaction.bill_status === 'Yet to pay'
+                              ? 'bg-orange-100 text-orange-800'
+                              : transaction.bill_status === 'Refund'
+                              ? 'bg-blue-100 text-blue-800'
                               : 'bg-red-100 text-red-800'
                           }`}
                         >

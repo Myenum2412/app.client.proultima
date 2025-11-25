@@ -100,6 +100,15 @@ export function EditCashTransactionDialog({
     }
   }, [transaction, open]);
 
+  // Auto-switch transaction type based on bill_status
+  useEffect(() => {
+    if (formData.bill_status === 'Yet to pay') {
+      setTransactionType('cash_out');
+    } else if (formData.bill_status === 'Refund') {
+      setTransactionType('cash_in');
+    }
+  }, [formData.bill_status]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -235,8 +244,10 @@ export function EditCashTransactionDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Paid">Paid</SelectItem>
-                <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="Cancelled">Cancelled</SelectItem>
+                {/* <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Cancelled">Cancelled</SelectItem> */}
+                <SelectItem value="Yet to pay">Yet to pay</SelectItem>
+                <SelectItem value="Refund">Refund</SelectItem>
               </SelectContent>
             </Select>
           </div>

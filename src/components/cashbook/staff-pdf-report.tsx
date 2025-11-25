@@ -155,6 +155,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fee2e2',
     color: '#991b1b',
   },
+  statusYetToPay: {
+    backgroundColor: '#fed7aa',
+    color: '#9a3412',
+  },
+  statusRefund: {
+    backgroundColor: '#dbeafe',
+    color: '#1e40af',
+  },
   noDataText: {
     fontSize: 12,
     color: '#64748b',
@@ -199,6 +207,10 @@ export function StaffPDFReport({
         return [styles.statusCell, styles.statusPending];
       case 'Cancelled':
         return [styles.statusCell, styles.statusCancelled];
+      case 'Yet to pay':
+        return [styles.statusCell, styles.statusYetToPay];
+      case 'Refund':
+        return [styles.statusCell, styles.statusRefund];
       default:
         return styles.statusCell;
     }
