@@ -13,6 +13,7 @@ import {
   IconFileText,
   IconCirclePlusFilled,
   IconCircleCheck,
+  IconPackage,
 } from "@tabler/icons-react"
 import { useAuth } from "@/contexts/auth-context"
 import { useAttendance } from "@/hooks/use-attendance"
@@ -97,6 +98,11 @@ export function StaffSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       title: "Maintenance",
       url: "/staff/maintenance",
       icon: IconTool,
+    },
+    {
+      title: "Stationary",
+      url: "/staff/stationary",
+      icon: IconPackage,
     },
     {
       title: "Reports",

@@ -3208,3 +3208,59 @@ export async function sendRepeatedTaskEmail(
   });
 }
 
+/**
+ * Send low stock alert email to admins for stationary items
+ * Notifies admins when stationary item quantity drops to 1 or below
+ */
+export async function sendLowStockAlertEmail(
+  itemName: string,
+  quantity: number,
+  branchName: string,
+  staffName: string,
+  adminEmails: string[]
+): Promise<{ success: boolean; messageId?: string }> {
+  const subject = `Low Stock Alert: ${itemName} - ${branchName} Branch`;
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Low Stock Alert</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
+        <h2 style="color: #856404; margin-top: 0;">⚠️ Low Stock Alert</h2>
+      </div>
+      
+      <p>Dear Admin,</p>
+      
+      <p>A stationary item has reached low stock levels and requires your attention.</p>
+      
+      <div style="background-color: #f8f9fa; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
+        <p style="margin: 0;"><strong>Item Name:</strong> ${itemName}</p>
+        <p style="margin: 5px 0 0 0;"><strong>Branch:</strong> ${branchName}</p>
+        <p style="margin: 5px 0 0 0;"><strong>Current Quantity:</strong> ${quantity}</p>
+        <p style="margin: 5px 0 0 0;"><strong>Purchased By:</strong> ${staffName}</p>
+      </div>
+      
+      <div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: 15px; margin: 20px 0;">
+        <p style="margin: 0;"><strong>Action Required:</strong></p>
+        <p style="margin: 5px 0 0 0;">Please restock this item as soon as possible to ensure availability for staff members.</p>
+      </div>
+      
+      <p style="margin-top: 30px;">Best regards,<br><strong>ProUltima System</strong></p>
+      
+      <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+      <p style="color: #666; font-size: 12px;">This is an automated notification. Please do not reply to this email.</p>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to: adminEmails,
+    subject,
+    html,
+  });
+}
+
