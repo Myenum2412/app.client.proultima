@@ -1,0 +1,9 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/create-repeated-tasks",
+      "schedule": "0 10 * * *"
+    }
+  ]
+}
+
