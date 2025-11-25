@@ -350,16 +350,12 @@ export default function StaffMaintenancePage() {
   };
 
   const handleAddAsset = async (data: any) => {
-    try {
-      await createAssetRequest(data);
-      setIsAddAssetOpen(false);
-      // Force refetch to ensure the new request appears immediately
-      setTimeout(() => {
-        refetchAssets();
-      }, 500);
-    } catch (error) {
-      console.error('Error creating asset request:', error);
-    }
+    await createAssetRequest(data);
+    setIsAddAssetOpen(false);
+    // Force refetch to ensure the new request appears immediately
+    setTimeout(() => {
+      refetchAssets();
+    }, 500);
   };
 
   const handleAddGrocery = (data: any) => {

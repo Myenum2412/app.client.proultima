@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
-import { getNextAssetNumber } from '@/lib/asset-number-utils';
 import type { AssetRequest } from '@/types/index';
 
 interface CreateAssetRequestData {
@@ -108,17 +107,10 @@ export function useAssetRequests(staffId?: string) {
   // Create asset request mutation
   const createMutation = useMutation({
     mutationFn: async (data: CreateAssetRequestData) => {
-      // Generate asset number if not provided
-      let assetNumber = (data as any).asset_number;
-      if (!assetNumber) {
-        assetNumber = await getNextAssetNumber();
-      }
-
       const { data: result, error } = await supabase
         .from('asset_requests')
         .insert([{
           ...data,
-          asset_number: assetNumber,
           request_type: data.request_type || 'system', // Default to 'system' if not provided
           status: 'pending',
           requested_date: new Date().toISOString(),

@@ -599,16 +599,11 @@ export function usePurchaseRequisitions(staffId?: string) {
               : `${data.brand_name} - ${productName}`;
           }
 
-          // Generate asset number
-          const assetNumberModule = await import('@/lib/asset-number-utils');
-          const assetNumber = await assetNumberModule.getNextAssetNumber();
-
           // Create asset request
           const assetRequestData = {
             staff_id: data.staff_id,
             staff_name: staffName || 'Staff Member',
             branch: data.branch,
-            asset_number: assetNumber,
             product_name: productName,
             quantity: requestType === 'common' ? (data.quantity || 1) : 1,
             condition: mapCondition(data.condition),

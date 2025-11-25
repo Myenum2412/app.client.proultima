@@ -79,6 +79,14 @@ export function AddAssetDrawer({ isOpen, onOpenChange, onSubmit, isSubmitting = 
         toast.error('Please enter brand name');
         return;
       }
+      if (formData.quantity <= 0) {
+        toast.error('Quantity must be greater than 0');
+        return;
+      }
+      if (formData.price < 0) {
+        toast.error('Price cannot be negative');
+        return;
+      }
     }
 
     try {
@@ -121,11 +129,14 @@ export function AddAssetDrawer({ isOpen, onOpenChange, onSubmit, isSubmitting = 
         submitData.brand_name = formData.brand_name || undefined;
         submitData.warranty = formData.warranty || undefined;
         submitData.specification = formData.specification || undefined;
-        submitData.price = formData.price || undefined;
+        // Price should be passed even if 0 (it's a required field for common type)
+        submitData.price = formData.price !== undefined ? formData.price : undefined;
       }
 
-      onSubmit(submitData);
+      // Await the async onSubmit call
+      await onSubmit(submitData);
 
+      // Only show success and reset form after successful submission
       toast.success('Asset request submitted successfully!');
       
       // Reset form
@@ -146,7 +157,9 @@ export function AddAssetDrawer({ isOpen, onOpenChange, onSubmit, isSubmitting = 
       onOpenChange(false);
     } catch (error: any) {
       console.error('Error submitting asset request:', error);
-      toast.error(error.message || 'Failed to submit asset request. Please try again.');
+      const errorMessage = error?.message || error?.toString() || 'Failed to submit asset request. Please try again.';
+      toast.error(errorMessage);
+      // Don't reset form or close drawer on error - let user fix and retry
     } finally {
       setIsUploading(false);
     }
@@ -156,7 +169,7 @@ export function AddAssetDrawer({ isOpen, onOpenChange, onSubmit, isSubmitting = 
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
       <DrawerContent className="max-h-[90vh] max-w-2xl mx-auto">
         <DrawerHeader className="border-b">
-          <DrawerTitle>Add Asset Request</DrawerTitle>
+          <DrawerTitle>Add Asset </DrawerTitle>
           <DrawerDescription>
             Request new assets for your workstation. All requests will be reviewed by admin.
           </DrawerDescription>
@@ -312,63 +325,93 @@ export function AddAssetDrawer({ isOpen, onOpenChange, onSubmit, isSubmitting = 
                 </>
               ) : (
                 <>
-                  {/* Common fields: Product Name*, Shop Contact*, S.no, Photo*, Brand Name*, Specification, Quantity, Price, Warranty */}
-                  {/* Product Name */}
-                  <div className="space-y-2">
-                    <Label htmlFor="product_name">Product Name *</Label>
-                    <Input
-                      id="product_name"
-                      value={formData.product_name}
-                      onChange={(e) => setFormData({...formData, product_name: e.target.value})}
-                      placeholder="e.g., Dell Laptop, HP Printer, Monitor"
-                      required
-                    />
-                  </div>
+                  {/* Common Type Fields */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Product Name */}
+                    <div className="space-y-2">
+                      <Label htmlFor="product_name">Product Name *</Label>
+                      <Input
+                        id="product_name"
+                        value={formData.product_name}
+                        onChange={(e) => setFormData({...formData, product_name: e.target.value})}
+                        placeholder="Enter product name"
+                        required
+                      />
+                    </div>
 
-                  {/* Shop Contact */}
-                  <div className="space-y-2">
-                    <Label htmlFor="shop_contact">Shop Contact *</Label>
-                    <Input
-                      id="shop_contact"
-                      value={formData.shop_contact}
-                      onChange={(e) => setFormData({...formData, shop_contact: e.target.value})}
-                      placeholder="Contact number or name"
-                      required
-                    />
-                  </div>
+                    {/* Shop Contact */}
+                    <div className="space-y-2">
+                      <Label htmlFor="shop_contact">Shop Contact *</Label>
+                      <Input
+                        id="shop_contact"
+                        value={formData.shop_contact}
+                        onChange={(e) => setFormData({...formData, shop_contact: e.target.value})}
+                        placeholder="Contact number or name"
+                        required
+                      />
+                    </div>
 
-                  {/* S.no (Serial Number) */}
-                  <div className="space-y-2">
-                    <Label htmlFor="serial_no">S.No</Label>
-                    <Input
-                      id="serial_no"
-                      value={formData.serial_no}
-                      onChange={(e) => setFormData({...formData, serial_no: e.target.value})}
-                      placeholder="Serial/Model number"
-                    />
-                  </div>
+                    {/* Serial Number (S.no) */}
+                    <div className="space-y-2">
+                      <Label htmlFor="serial_no">S.No</Label>
+                      <Input
+                        id="serial_no"
+                        value={formData.serial_no}
+                        onChange={(e) => setFormData({...formData, serial_no: e.target.value})}
+                        placeholder="Serial/Model number (optional)"
+                      />
+                    </div>
 
-                  {/* Brand Name */}
-                  <div className="space-y-2">
-                    <Label htmlFor="brand_name">Brand Name *</Label>
-                    <Input
-                      id="brand_name"
-                      value={formData.brand_name}
-                      onChange={(e) => setFormData({...formData, brand_name: e.target.value})}
-                      placeholder="e.g., Dell, HP, Lenovo"
-                      required
-                    />
-                  </div>
+                    {/* Brand Name */}
+                    <div className="space-y-2">
+                      <Label htmlFor="brand_name">Brand Name *</Label>
+                      <Input
+                        id="brand_name"
+                        value={formData.brand_name}
+                        onChange={(e) => setFormData({...formData, brand_name: e.target.value})}
+                        placeholder="Enter brand name"
+                        required
+                      />
+                    </div>
 
-                  {/* Warranty */}
-                  <div className="space-y-2">
-                    <Label htmlFor="warranty">Warranty</Label>
-                    <Input
-                      id="warranty"
-                      value={formData.warranty}
-                      onChange={(e) => setFormData({...formData, warranty: e.target.value})}
-                      placeholder="e.g., 1 year, 2 years"
-                    />
+                    {/* Warranty */}
+                    <div className="space-y-2">
+                      <Label htmlFor="warranty">Warranty</Label>
+                      <Input
+                        id="warranty"
+                        value={formData.warranty}
+                        onChange={(e) => setFormData({...formData, warranty: e.target.value})}
+                        placeholder="e.g., 1 year, 2 years (optional)"
+                      />
+                    </div>
+
+                    {/* Quantity */}
+                    <div className="space-y-2">
+                      <Label htmlFor="quantity">Quantity *</Label>
+                      <Input
+                        id="quantity"
+                        type="number"
+                        min="1"
+                        value={formData.quantity}
+                        onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 1})}
+                        required
+                      />
+                    </div>
+
+                    {/* Price */}
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Price *</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formData.price}
+                        onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+                        placeholder="0.00"
+                        required
+                      />
+                    </div>
                   </div>
 
                   {/* Specification */}
@@ -378,46 +421,24 @@ export function AddAssetDrawer({ isOpen, onOpenChange, onSubmit, isSubmitting = 
                       id="specification"
                       value={formData.specification}
                       onChange={(e) => setFormData({...formData, specification: e.target.value})}
-                      placeholder="Product specifications..."
+                      placeholder="Product specifications (optional)"
                       rows={3}
                     />
                   </div>
 
-                  {/* Quantity */}
-                  <div className="space-y-2">
-                    <Label htmlFor="quantity">Quantity</Label>
-                    <Input
-                      id="quantity"
-                      type="number"
-                      min="1"
-                      value={formData.quantity}
-                      onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 1})}
-                      required
-                    />
-                  </div>
-
-                  {/* Price */}
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Price</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.price}
-                      onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
-                      placeholder="0.00"
-                    />
-                  </div>
-
                   {/* Photo Upload */}
-                  <MultipleImageUpload
-                    onImagesChange={setSelectedFiles}
-                    maxImages={5}
-                    maxSizeMB={5}
-                    acceptAllTypes={false}
-                    label="Upload Photos * (Required)"
-                  />
+                  <div className="space-y-3">
+                    <MultipleImageUpload
+                      onImagesChange={setSelectedFiles}
+                      maxImages={5}
+                      maxSizeMB={5}
+                      acceptAllTypes={false}
+                      label="Upload Photos * (Required)"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Upload clear images of the product for admin verification.
+                    </p>
+                  </div>
                 </>
               )}
             </form>

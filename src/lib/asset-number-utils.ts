@@ -1,7 +1,5 @@
 'use client';
 
-import { createClient } from '@/lib/supabase/client';
-
 /**
  * Extract numeric suffix from asset number (e.g., "ASS001" -> 1)
  */
@@ -19,35 +17,11 @@ function extractNumericSuffix(assetNumber: string | null | undefined): number {
  * Generate the next available asset number (ASS001, ASS002, etc.)
  */
 export async function getNextAssetNumber(): Promise<string> {
-  const supabase = createClient();
-  
-  try {
-    // Fetch all asset requests with asset_number
-    const { data: assets, error } = await supabase
-      .from('asset_requests')
-      .select('asset_number')
-      .not('asset_number', 'is', null)
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching asset numbers:', error);
-      // Fallback: start from ASS001 if query fails
-      return 'ASS001';
-    }
-
-    // Find the highest number
-    const highest = (assets || [])
-      .map((asset) => extractNumericSuffix(asset.asset_number))
-      .reduce((max, value) => (value > max ? value : max), 0);
-
-    // Generate next number
-    const nextNumber = highest + 1;
-    return `ASS${nextNumber.toString().padStart(3, '0')}`;
-  } catch (error) {
-    console.error('Error generating asset number:', error);
-    // Fallback: start from ASS001
-    return 'ASS001';
-  }
+  // Since asset_number column doesn't exist in asset_requests table,
+  // return a timestamp-based identifier instead
+  const timestamp = Date.now();
+  const suffix = timestamp.toString().slice(-3);
+  return `ASS${suffix}`;
 }
 
 /**
