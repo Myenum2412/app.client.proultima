@@ -432,6 +432,11 @@ export default function StaffMaintenancePage() {
     }
   };
 
+  // Helper function to check if purchase can be edited or deleted
+  const canEditOrDeletePurchase = (status: string) => {
+    return status !== 'completed';
+  };
+
   const getRunningStatusBadge = (status: string) => {
     return status === 'running' ? (
       <Badge variant="default" className="bg-green-100 text-green-800">Running</Badge>
@@ -890,35 +895,37 @@ export default function StaffMaintenancePage() {
                                   Upload Product
                                 </Button>
                               )}
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={(e) => {
-                                    e.stopPropagation();
-                                    setEditPurchase(req);
-                                    setIsEditPurchaseOpen(true);
-                                  }}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    onClick={(e) => {
+                              {canEditOrDeletePurchase(req.status) && (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={(e) => {
                                       e.stopPropagation();
-                                      setDeleteType('purchase');
-                                      setDeleteId(req.id);
-                                      setIsDeleteDialogOpen(true);
-                                    }}
-                                    className="text-red-600"
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                                      setEditPurchase(req);
+                                      setIsEditPurchaseOpen(true);
+                                    }}>
+                                      <Pencil className="mr-2 h-4 w-4" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setDeleteType('purchase');
+                                        setDeleteId(req.id);
+                                        setIsDeleteDialogOpen(true);
+                                      }}
+                                      className="text-red-600"
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              )}
                               <DownloadPurchasePDF requisition={req} />
                             </div>
                           </TableCell>
