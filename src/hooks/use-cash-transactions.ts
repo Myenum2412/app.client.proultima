@@ -43,7 +43,7 @@ export function useCashTransactions(
         .order('created_at', { ascending: false });
 
       if (branch) {
-        query = query.eq('branch', branch);
+        query = query.ilike('branch', branch);  // Case-insensitive match
       }
 
       if (startDate) {
