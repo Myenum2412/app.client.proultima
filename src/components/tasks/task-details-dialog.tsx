@@ -236,42 +236,64 @@ export function TaskDetailsDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="sm:max-w-[800px] w-[95vw] md:w-[90vw] lg:w-[800px] bg-white dark:bg-gray-950 rounded-xl max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        className="sm:max-w-[800px] w-[100vw] max-w-[100vw] sm:w-[95vw] md:w-[90vw] lg:w-[800px] bg-white dark:bg-gray-950 rounded-none sm:rounded-xl max-h-[100vh] sm:max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] p-0 sm:p-6"
         showCloseButton={false}
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
         } as React.CSSProperties}
       >
-        <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex border-b pb-4  items-center justify-between">
-            <span>{isEditing ? "Edit Task" : "Task Details"}</span>
-            {!isEditing && (
+        <DialogHeader className="sticky top-0 z-10 bg-white dark:bg-gray-950 border-b px-4 sm:px-0 pt-4 sm:pt-0 pb-3 sm:pb-4">
+          <div className="flex items-center justify-between gap-2 mb-2 sm:mb-0">
+            <DialogTitle className="text-base sm:text-xl font-bold text-gray-900 dark:text-white flex-1">
+              {isEditing ? "Edit Task" : "Task Details"}
+            </DialogTitle>
+            <div className="flex items-center gap-2">
+              {!isEditing && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditing(true)}
+                  className="hidden sm:flex items-center gap-2"
+                >
+                  <EditIcon className="h-4 w-4" />
+                </Button>
+              )}
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(true)}
-                className="mr-4"
+                variant="ghost"
+                size="icon"
+                onClick={() => onOpenChange(false)}
+                className="h-8 w-8 sm:h-9 sm:w-9"
               >
-                <EditIcon className="h-4 w-4" />
-                
+                <X className="h-4 w-4" />
               </Button>
-            )}
-          </DialogTitle>
+            </div>
+          </div>
+          {!isEditing && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditing(true)}
+              className="w-full sm:hidden mt-2"
+            >
+              <EditIcon className="h-4 w-4 mr-2" />
+              Edit Task
+            </Button>
+          )}
         </DialogHeader>
 
-        <div className="py-2 sm:py-4 space-y-4 sm:space-y-6">
+        <div className="py-4 sm:py-4 px-4 sm:px-0 space-y-4 sm:space-y-6 overflow-y-auto">
           {/* Allocation Mode (View/Edit) */}
           {isEditing && (
             <div className="space-y-2">
               <Label className="text-sm font-medium">Allocation Mode *</Label>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <Button
                   type="button"
                   variant={formData.allocation_mode === 'individual' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => handleInputChange('allocation_mode', 'individual')}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2 w-full sm:w-auto"
                 >
                   <User className="h-4 w-4" />
                   Individual
@@ -281,7 +303,7 @@ export function TaskDetailsDialog({
                   variant={formData.allocation_mode === 'team' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => handleInputChange('allocation_mode', 'team')}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2 w-full sm:w-auto"
                 >
                   <Users className="h-4 w-4" />
                   Team
@@ -299,7 +321,7 @@ export function TaskDetailsDialog({
                 placeholder="Enter task title"
                 value={formData.title}
                 onChange={(e) => handleInputChange("title", e.target.value)}
-                className="h-10"
+                className="h-11 sm:h-10 text-base sm:text-sm"
               />
             ) : (
               <p className="text-base font-semibold">{task.title}</p>
@@ -316,7 +338,7 @@ export function TaskDetailsDialog({
                 value={formData.description}
                 onChange={(e) => handleInputChange("description", e.target.value)}
                 rows={4}
-                className="resize-none"
+                className="resize-none text-base sm:text-sm min-h-[100px]"
               />
             ) : (
               <p className="text-sm text-muted-foreground">
@@ -326,7 +348,7 @@ export function TaskDetailsDialog({
           </div>
 
           {/* Status, Priority & Assigned To - One Row with 3 Columns */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-4">
             {/* Status */}
             <div className="space-y-2">
               <Label htmlFor="status" className="text-sm font-medium">Status *</Label>
@@ -335,7 +357,7 @@ export function TaskDetailsDialog({
                   value={formData.status}
                   onValueChange={(value) => handleInputChange("status", value)}
                 >
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="h-11 sm:h-10 text-base sm:text-sm">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -364,7 +386,7 @@ export function TaskDetailsDialog({
                   value={formData.priority}
                   onValueChange={(value) => handleInputChange("priority", value)}
                 >
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="h-11 sm:h-10 text-base sm:text-sm">
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
                   <SelectContent>
@@ -400,7 +422,7 @@ export function TaskDetailsDialog({
                         }
                       }}
                     >
-                      <SelectTrigger className="h-10">
+                      <SelectTrigger className="h-11 sm:h-10 text-base sm:text-sm">
                         <SelectValue placeholder="Select staff" />
                       </SelectTrigger>
                       <SelectContent>
@@ -447,7 +469,7 @@ export function TaskDetailsDialog({
                       value={formData.assigned_team_ids[0] || ""}
                       onValueChange={(value) => handleInputChange("assigned_team_ids", [value])}
                     >
-                      <SelectTrigger className="h-10">
+                      <SelectTrigger className="h-11 sm:h-10 text-base sm:text-sm">
                         <SelectValue placeholder="Select team" />
                       </SelectTrigger>
                       <SelectContent>
@@ -568,13 +590,13 @@ export function TaskDetailsDialog({
                   <Button
                     type="button"
                     variant="outline"
-                    className={cn("w-full justify-start text-left h-10", !formData.due_date && "text-muted-foreground")}
+                    className={cn("w-full justify-start text-left h-10 text-sm sm:text-base", !formData.due_date && "text-muted-foreground")}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.due_date ? format(formData.due_date, "PPP") : "Pick a date"}
+                    <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">{formData.due_date ? format(formData.due_date, "PPP") : "Pick a date"}</span>
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className="w-auto p-0" align="start" side="bottom">
                   <Calendar
                     mode="single"
                     selected={formData.due_date}
@@ -587,9 +609,9 @@ export function TaskDetailsDialog({
                 </PopoverContent>
               </Popover>
             ) : (
-              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                <span>{task.due_date ? format(new Date(task.due_date), "PPP") : "No due date"}</span>
+              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg min-h-[2.5rem]">
+                <CalendarIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-sm sm:text-base break-words">{task.due_date ? format(new Date(task.due_date), "PPP") : "No due date"}</span>
               </div>
             )}
           </div>
@@ -611,7 +633,7 @@ export function TaskDetailsDialog({
                   <Label className="text-sm font-medium">Repeat Settings</Label>
                   
                   {/* Row 1: Frequency and Every */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="repeat-frequency" className="text-xs font-medium">Frequency</Label>
                       <Select
@@ -652,21 +674,21 @@ export function TaskDetailsDialog({
                     </div>
 
                   {/* Row 2: End Date */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-4">
+                    <div className="space-y-2 sm:col-span-1">
                       <Label htmlFor="repeat-end-date" className="text-xs font-medium">End Date (Optional)</Label>
                       <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
                         <PopoverTrigger asChild>
                           <Button
                             type="button"
                             variant="outline"
-                            className={cn("w-full justify-start text-left font-normal text-xs", !repeatEndDate && "text-muted-foreground")}
+                            className={cn("w-full justify-start text-left font-normal text-xs h-9", !repeatEndDate && "text-muted-foreground")}
                           >
-                            <CalendarIcon className="mr-2 h-3 w-3" />
-                            {repeatEndDate ? format(repeatEndDate, "PPP") : "No end date"}
+                            <CalendarIcon className="mr-2 h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">{repeatEndDate ? format(repeatEndDate, "PPP") : "No end date"}</span>
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
+                        <PopoverContent className="w-auto p-0" align="start" side="bottom">
                           <Calendar
                             mode="single"
                             selected={repeatEndDate}
@@ -717,7 +739,7 @@ export function TaskDetailsDialog({
                     </div>
 
                     {hasSpecificTime && (
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="start-time" className="text-xs font-medium">Start Time</Label>
                           <Input
@@ -725,7 +747,7 @@ export function TaskDetailsDialog({
                             type="time"
                             value={startTime}
                             onChange={(e) => setStartTime(e.target.value)}
-                            className="w-full"
+                            className="w-full h-9"
                           />
                         </div>
                         <div className="space-y-2">
@@ -735,7 +757,7 @@ export function TaskDetailsDialog({
                             type="time"
                             value={endTime}
                             onChange={(e) => setEndTime(e.target.value)}
-                            className="w-full"
+                            className="w-full h-9"
                           />
                         </div>
                       </div>
@@ -843,13 +865,13 @@ export function TaskDetailsDialog({
           )}
 
           {/* Action Buttons */}
-          <div className="pt-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <div className=" pb-4 sm:pb-0 flex flex-col sm:flex-row gap-2 sm:gap-3 sticky bottom-0 bg-white dark:bg-gray-950 sm:bg-transparent dark:sm:bg-transparent -mx-4 sm:mx-0 px-4 sm:px-0 border-t sm:border-t-0 pt-4 sm:pt-4">
             {isEditing ? (
               <>
                 <Button
                   onClick={handleSave}
                   disabled={isUpdating}
-                  className="w-full sm:flex-1 h-10"
+                  className="w-full sm:flex-1 h-11 sm:h-10 order-1"
                   variant="default"
                 >
                   <Save className="w-4 h-4 mr-2" />
@@ -858,7 +880,7 @@ export function TaskDetailsDialog({
                 <Button
                   variant="outline"
                   onClick={handleCancel}
-                  className="w-full sm:flex-1 h-10"
+                  className="w-full sm:flex-1 h-11 sm:h-10 order-2"
                 >
                   <X className="w-4 h-4 mr-2" />
                   Cancel
@@ -867,10 +889,10 @@ export function TaskDetailsDialog({
                   variant="destructive"
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="w-full sm:w-auto h-10"
+                  className="w-full sm:w-auto h-11 sm:h-10 order-3"
                 >
-                  <Trash2 className="w-4 h-4" />
-                  <span className="sm:hidden ml-2">Delete</span>
+                  <Trash2 className="w-4 h-4 mr-2 sm:mr-0" />
+                  <span className="sm:hidden">Delete Task</span>
                 </Button>
               </>
             ) : null}
