@@ -150,11 +150,19 @@ export default function AdminCashbookPage() {
       runningBalance = branchBalance?.opening_balance || 0;
     }
     
-    const sortedTransactions = [...filteredTransactions].sort(
-      (a, b) => new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime()
-    );
+    // Sort ascending by date for proper balance calculation (oldest to newest)
+    const sortedTransactions = [...filteredTransactions].sort((a, b) => {
+      const dateA = new Date(a.transaction_date).getTime();
+      const dateB = new Date(b.transaction_date).getTime();
+      if (dateA !== dateB) {
+        return dateA - dateB;
+      }
+      // Same date: sort by created_at ascending (older first for balance calculation)
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    });
     
-    return sortedTransactions.map(transaction => {
+    // Calculate balances (must be done in chronological order)
+    const transactionsWithBalances = sortedTransactions.map(transaction => {
       if (transaction.verification_status === 'approved') {
         runningBalance = runningBalance + (transaction.cash_in || 0) - (transaction.cash_out || 0);
       }
@@ -162,7 +170,18 @@ export default function AdminCashbookPage() {
         ...transaction,
         calculatedBalance: runningBalance
       };
-    }).reverse();
+    });
+    
+    // Re-sort for display: newest first by date, then by time for same-day transactions
+    return transactionsWithBalances.sort((a, b) => {
+      const dateA = new Date(a.transaction_date).getTime();
+      const dateB = new Date(b.transaction_date).getTime();
+      if (dateA !== dateB) {
+        return dateB - dateA; // Descending: newer dates first
+      }
+      // Same date: sort by created_at descending (newer time first)
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
   }, [filteredTransactions, selectedBranch, openingBalances, grandTotal]);
 
   // Pagination logic
