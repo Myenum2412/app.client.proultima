@@ -18,7 +18,7 @@ import { format } from 'date-fns';
 import { useMemo } from 'react';
 import { AssetApprovalDialog } from './asset-approval-dialog';
 import { DownloadAssetPDF } from '@/components/asset/download-asset-pdf';
-import { generateAssetNumbersForRequests } from '@/lib/asset-number-utils';
+import { generateFirstLetterNumbers } from '@/lib/asset-number-utils';
 import type { AssetRequest } from '@/types/index';
 
 interface AssetRequestsTableProps {
@@ -33,7 +33,7 @@ export function AssetRequestsTable({ assetRequests, isLoading, startIndex = 0 }:
 
   // Generate asset numbers for requests that don't have them
   const assetNumberMap = useMemo(() => {
-    return generateAssetNumbersForRequests(assetRequests);
+    return generateFirstLetterNumbers(assetRequests);
   }, [assetRequests]);
 
   const handleViewDetails = (request: AssetRequest) => {
