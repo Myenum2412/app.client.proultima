@@ -384,47 +384,69 @@ export default function AdminCashbookPage() {
         <CardContent className="space-y-4">
           {/* Filter Grid - Responsive layout: 2 cols on mobile, 3 on md, 4 on lg, 6 on xl */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
-            {/* Branch Filter */}
-            <div className="space-y-2">
-              <Label htmlFor="branch" className="text-xs font-medium flex items-center gap-1.5">
-                <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                Branch
-              </Label>
-              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="h-10 w-full">
-                  <SelectValue placeholder="All Branches" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Branches</SelectItem>
-                  {branches.map((branch) => (
-                    <SelectItem key={branch} value={branch}>
-                      {branch}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Branch Filter - Only show when Staff is not selected */}
+            {selectedStaff === 'all' && (
+              <div className="space-y-2">
+                <Label htmlFor="branch" className="text-xs font-medium flex items-center gap-1.5">
+                  <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  Branch
+                </Label>
+                <Select 
+                  value={selectedBranch} 
+                  onValueChange={(value) => {
+                    setSelectedBranch(value);
+                    // Auto-reset Staff to 'all' when Branch is selected
+                    if (value !== 'all') {
+                      setSelectedStaff('all');
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-10 w-full">
+                    <SelectValue placeholder="All Branches" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Branches</SelectItem>
+                    {branches.map((branch) => (
+                      <SelectItem key={branch} value={branch}>
+                        {branch}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
-            {/* Staff Filter */}
-            <div className="space-y-2">
-              <Label htmlFor="staff" className="text-xs font-medium flex items-center gap-1.5">
-                <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                Staff
-              </Label>
-              <Select value={selectedStaff} onValueChange={setSelectedStaff}>
-                <SelectTrigger className="h-10 w-full">
-                  <SelectValue placeholder="All Staff" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Staff</SelectItem>
-                  {staff.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name} ({s.employee_id})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Staff Filter - Only show when Branch is not selected */}
+            {selectedBranch === 'all' && (
+              <div className="space-y-2">
+                <Label htmlFor="staff" className="text-xs font-medium flex items-center gap-1.5">
+                  <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                  Staff
+                </Label>
+                <Select 
+                  value={selectedStaff} 
+                  onValueChange={(value) => {
+                    setSelectedStaff(value);
+                    // Auto-reset Branch to 'all' when Staff is selected
+                    if (value !== 'all') {
+                      setSelectedBranch('all');
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-10 w-full">
+                    <SelectValue placeholder="All Staff" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Staff</SelectItem>
+                    {staff.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name} ({s.employee_id})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Start Date Filter */}
             <div className="space-y-2">
