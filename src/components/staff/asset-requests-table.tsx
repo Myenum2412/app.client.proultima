@@ -30,7 +30,7 @@ import { format } from 'date-fns';
 import { useMemo } from 'react';
 import type { AssetRequest } from '@/types/index';
 import { DownloadAssetPDF } from '@/components/asset/download-asset-pdf';
-import { generateAssetNumbersForRequests } from '@/lib/asset-number-utils';
+import { generateFirstLetterNumbers } from '@/lib/asset-number-utils';
 
 interface AssetRequestsTableProps {
   assetRequests: AssetRequest[];
@@ -47,9 +47,9 @@ export function AssetRequestsTable({ assetRequests, isLoading, onEditRequest, on
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // Generate asset numbers for requests that don't have them
+  // Generate asset numbers based on first letter of product name + sequential number
   const assetNumberMap = useMemo(() => {
-    return generateAssetNumbersForRequests(assetRequests);
+    return generateFirstLetterNumbers(assetRequests);
   }, [assetRequests]);
 
   const handleViewDetails = (request: AssetRequest) => {
@@ -140,7 +140,7 @@ export function AssetRequestsTable({ assetRequests, isLoading, onEditRequest, on
           </TableHeader>
           <TableBody>
             {assetRequests.map((request, index) => {
-              const assetNumber = request.asset_number || assetNumberMap.get(request.id) || '-';
+              const assetNumber = assetNumberMap.get(request.id) || '-';
               return (
               <TableRow 
                 key={request.id} 
