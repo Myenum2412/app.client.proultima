@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { DashboardCards } from "./DashboardCards";
 import { LoadingState } from "@/components/ui/loading-state";
 import ScheduleMeetingForm from "./ScheduleMeetingForm";
+import ActivityFeed from "./ActivityFeed";
 
 function DashboardContent() {
   return (
@@ -31,6 +32,7 @@ function DashboardContent() {
           className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-hidden"
         >
           <ScheduleMeetingForm />
+          <ActivityFeed />
         </motion.div>
       </div>
     </motion.main>

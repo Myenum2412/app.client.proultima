@@ -68,6 +68,12 @@ const data = {
       icon: CreditCard,
       
     },
+    {
+      title: "Chat",
+      url: "/chat",
+      icon: MessageCircle,
+      
+    },
   
   ],
   projects: [

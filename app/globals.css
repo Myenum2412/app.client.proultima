@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -43,6 +44,48 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --radius: var(----radius);
+  @keyframes box1 {
+  0%,
+    50% {
+    transform: translate(100%, 0);
+    }
+  100% {
+    transform: translate(200%, 0);
+    }
+  }
+  @keyframes box2 {
+  0% {
+    transform: translate(0, 100%);
+    }
+  50% {
+    transform: translate(0, 0);
+    }
+  100% {
+    transform: translate(100%, 0);
+    }
+  }
+  @keyframes box3 {
+  0%,
+    50% {
+    transform: translate(100%, 100%);
+    }
+  100% {
+    transform: translate(0, 100%);
+    }
+  }
+  @keyframes box4 {
+  0% {
+    transform: translate(200%, 0);
+    }
+  50% {
+    transform: translate(200%, 100%);
+    }
+  100% {
+    transform: translate(100%, 100%);
+    }
+  }
 }
 
 :root {
@@ -100,7 +143,6 @@
   --spacing: 0.25rem;
 }
 
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -118,4 +160,17 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+}
+
+.dark {
+  --card: oklch(0.145 0 0);
+  --popover: oklch(0.145 0 0);
+  --primary: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
 }
