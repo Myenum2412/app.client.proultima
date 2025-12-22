@@ -17,7 +17,7 @@ const Submissions = ({ initialSubmissions = [] }: SubmissionsProps) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-        className="flex-1  overflow-x-hidden p-4  my-4 w-full"
+        className="flex-1  overflow-x-hidden p-3  my-4 w-full"
       >
         <div className="space-y-6 overflow-x-hidden">
           <SubmissionsCard initialSubmissions={initialSubmissions} />

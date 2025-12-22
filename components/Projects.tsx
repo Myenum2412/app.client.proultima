@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense, useMemo, useCallback, memo } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChangeOrdersTable } from "@/components/change-orders-table";
@@ -31,8 +31,18 @@ function ProjectContent({
   // Fetch projects from Supabase (client-side fallback if initialProjects not provided)
   const { data: supabaseProjects = [], isLoading, error } = useProjects();
 
-  // State for projects list
-  const [projects, setProjects] = useState<Project[]>([]);
+  // 🚀 OPTIMIZATION: Memoize project conversion to prevent re-computation
+  const projects = useMemo(() => {
+    const source = initialProjects || supabaseProjects;
+    if (!source || source.length === 0) return [];
+    
+    const converted = source.map(convertSupabaseProject);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Projects loaded: ${converted.length}`);
+    }
+    return converted;
+  }, [initialProjects, supabaseProjects]);
+
   // State for currently selected project
   const [currentProject, setCurrentProject] = useState<Project | null>(
     propSelectedProject || null
@@ -51,34 +61,6 @@ function ProjectContent({
   useEffect(() => {
     currentProjectIdRef.current = currentProject?.id ?? null;
   }, [currentProject?.id]);
-
-  // Update projects when initialProjects (SSR data) is provided
-  useEffect(() => {
-    if (initialProjects && initialProjects.length > 0) {
-      const convertedInitialProjects = initialProjects.map(
-        convertSupabaseProject
-      );
-      setProjects(convertedInitialProjects);
-      console.log(
-        "Total projects loaded (SSR):",
-        convertedInitialProjects.length
-      );
-    }
-  }, [initialProjects]);
-
-  // Update projects when Supabase data loads (client-side fallback)
-  useEffect(() => {
-    if (!initialProjects && supabaseProjects.length > 0) {
-      const convertedSupabaseProjects = supabaseProjects.map(
-        convertSupabaseProject
-      );
-      setProjects(convertedSupabaseProjects);
-      console.log(
-        "Total projects loaded (client):",
-        convertedSupabaseProjects.length
-      );
-    }
-  }, [supabaseProjects, initialProjects]);
 
   // Handle project selection logic (only for URL, prop, filter, or initial load)
   useEffect(() => {
@@ -107,11 +89,9 @@ function ProjectContent({
       if (projectFromUrl) {
         const currentId = currentProjectIdRef.current;
         if (projectFromUrl.id !== currentId) {
-          console.log(
-            "Found project from URL:",
-            projectFromUrl.projectNumber,
-            projectFromUrl.projectName
-          );
+          if (process.env.NODE_ENV === 'development') {
+            console.log("Project from URL:", projectFromUrl.projectNumber);
+          }
           currentProjectIdRef.current = projectFromUrl.id;
           setCurrentProject(projectFromUrl);
           hasInitializedRef.current = true;
@@ -185,20 +165,18 @@ function ProjectContent({
       currentProjectIdRef.current = projectToSelect.id;
       setCurrentProject(projectToSelect);
       hasInitializedRef.current = true;
-      console.log(
-        "Auto-selected initial project:",
-        projectToSelect.projectNumber
-      );
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Auto-selected:", projectToSelect.projectNumber);
+      }
     }
   }, [propSelectedProject, filter, projectIdFromUrl, projects]);
 
-  // Handle manual project selection (user clicks a card)
-  const handleProjectSelect = (project: Project) => {
-    console.log(
-      "Manual project selection:",
-      project.projectNumber,
-      project.projectName
-    );
+  // 🚀 OPTIMIZATION: Memoize project selection handler
+  const handleProjectSelect = useCallback((project: Project) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Project selected:", project.projectNumber);
+    }
+    
     // Set flag to prevent useEffect from overriding
     manualSelectionRef.current = true;
     // Update ref and state immediately
@@ -209,7 +187,7 @@ function ProjectContent({
     setTimeout(() => {
       manualSelectionRef.current = false;
     }, 100);
-  };
+  }, []);
 
   // Show loading state while fetching from Supabase (only on initial load and if no SSR data)
   if (!initialProjects && isLoading && projects.length === 0) {
@@ -255,7 +233,7 @@ function ProjectContent({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-        className="flex-1 overflow-y-auto p-4 lg:p-6 my-4 w-full"
+        className="flex-1 overflow-y-auto p-3 my-4 w-full"
       >
         <div className="space-y-6">
           {/* Project Selector - Only show if no project selected from file management card */}

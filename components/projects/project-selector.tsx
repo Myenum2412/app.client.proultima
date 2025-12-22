@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -13,6 +13,68 @@ interface ProjectSelectorProps {
   currentProject: Project | null;
   onProjectSelect: (project: Project) => void;
 }
+
+// 🚀 OPTIMIZATION: Memoize individual project card to prevent unnecessary re-renders
+const ProjectCard = memo(({ 
+  project, 
+  isSelected, 
+  index, 
+  onSelect 
+}: { 
+  project: Project; 
+  isSelected: boolean; 
+  index: number;
+  onSelect: (project: Project) => void;
+}) => {
+  return (
+    <motion.div
+      key={project.id}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ 
+        duration: 0.3,
+        delay: Math.min(index * 0.03, 0.3), // Cap delay at 0.3s
+        ease: [0.4, 0, 0.2, 1]
+      }}
+      className="flex-shrink-0"
+    >
+      <Card
+        className={cn(
+          "cursor-pointer transition-all duration-200",
+          "w-[260px] h-[120px] border rounded-lg",
+          isSelected
+            ? "bg-gray-900 text-white border-gray-700 shadow-lg"
+            : "bg-white text-gray-900 border-gray-200 hover:border-gray-300 hover:shadow-md"
+        )}
+        onClick={() => onSelect(project)}
+      >
+        <CardContent className="h-full flex flex-col justify-between p-4">
+          {/* Project Number */}
+          <div
+            className={cn(
+              "text-lg font-semibold transition-colors",
+              isSelected ? "text-white" : "text-gray-900"
+            )}
+          >
+            {project.projectNumber}
+          </div>
+
+          {/* Project Name */}
+          <div
+            className={cn(
+              "text-sm mt-1 leading-snug transition-colors",
+              isSelected ? "text-white/80" : "text-gray-700"
+            )}
+          >
+            {project.projectName}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+});
+
+ProjectCard.displayName = 'ProjectCard';
 
 export function ProjectSelector({
   projects,
@@ -109,57 +171,15 @@ export function ProjectSelector({
             className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2 -mx-2 px-2"
             onScroll={checkScrollPosition}
           >
-            {projects.map((project, index) => {
-              const isSelected = currentProject?.id === project.id;
-              
-              return (
-                <motion.div
-                  key={project.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ 
-                    duration: 0.3,
-                    delay: index * 0.05,
-                    ease: [0.4, 0, 0.2, 1]
-                  }}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  className="flex-shrink-0"
-                >
-                  <Card
-                    className={cn(
-                      "cursor-pointer transition-all duration-200",
-                      "w-[260px] h-[120px] border rounded-lg",
-                      isSelected
-                        ? "bg-gray-900 text-white border-gray-700 shadow-lg"
-                        : "bg-white text-gray-900 border-gray-200 hover:border-gray-300 hover:shadow-md"
-                    )}
-                    onClick={() => onProjectSelect(project)}
-                  >
-                    <CardContent className="h-full flex flex-col justify-between p-4">
-                      {/* Project Number */}
-                      <div
-                        className={cn(
-                          "text-lg font-semibold transition-colors",
-                          isSelected ? "text-white" : "text-gray-900"
-                        )}
-                      >
-                        {project.projectNumber}
-                      </div>
-
-                      {/* Project Name */}
-                      <div
-                        className={cn(
-                          "text-sm mt-1 leading-snug transition-colors",
-                          isSelected ? "text-white/80" : "text-gray-700"
-                        )}
-                      >
-                        {project.projectName}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })}
+            {projects.map((project, index) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              isSelected={currentProject?.id === project.id}
+              index={index}
+              onSelect={onProjectSelect}
+            />
+          ))}
           </div>
 
           {/* Right Navigation Arrow */}

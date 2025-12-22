@@ -3,6 +3,8 @@ import type { MaterialListBlock } from "./material-list-management-card";
 
 /**
  * Convert Supabase project to the format expected by this component
+ * 🚀 OPTIMIZATION: Removed heavy dummy data generation from here
+ * Dummy data is now loaded lazily when the component needs it
  */
 export function convertSupabaseProject(dbProject: any): Project {
   // Generate a numeric ID from UUID if needed, or use the string ID
@@ -25,7 +27,7 @@ export function convertSupabaseProject(dbProject: any): Project {
 
   return {
     id: numericId,
-    supabaseId: typeof dbProject.id === 'string' ? dbProject.id : dbProject.id?.toString(), // Store original UUID for API calls
+    supabaseId: typeof dbProject.id === 'string' ? dbProject.id : dbProject.id?.toString(),
     projectNumber: dbProject.projectNumber || dbProject.jobNumber || dbProject.projectName || "",
     projectName: dbProject.projectName || "",
     clientName: dbProject.clientName || "PSG",
@@ -59,17 +61,19 @@ export function convertSupabaseProject(dbProject: any): Project {
     changeOrders: [],
     meetings: [],
     queries: [],
-    drawingsYetToReturn: [], // Empty array - tables will fetch from Supabase when projectId is provided
-    drawingsYetToRelease: [], // Empty array - tables will fetch from Supabase when projectId is provided
-    drawingLog: [], // Empty array - tables will fetch from Supabase when projectId is provided
-    materialListManagement: getDummyMaterialListManagement(),
+    drawingsYetToReturn: [],
+    drawingsYetToRelease: [],
+    drawingLog: [],
+    // 🚀 OPTIMIZATION: Lazy load this data only when MaterialListManagementCard is rendered
+    materialListManagement: undefined, // Will be loaded lazily
   };
 }
 
 /**
  * Generate dummy material list management data for demonstration
+ * 🚀 OPTIMIZATION: Exported for lazy loading
  */
-function getDummyMaterialListManagement(): MaterialListBlock[] {
+export function getDummyMaterialListManagement(): MaterialListBlock[] {
   return [
     {
       id: "block-1",

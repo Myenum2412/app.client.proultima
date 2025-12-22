@@ -13,7 +13,7 @@ function DashboardContent() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="flex-1  overflow-hidden p-4 lg:p-6 my-4 w-full max-w-full"
+      className="flex-1  overflow-hidden p-3  my-4 w-full max-w-full"
     >
       <div className="space-y-6 w-full max-w-full overflow-hidden">
         {/* Dashboard Overview Cards */}
