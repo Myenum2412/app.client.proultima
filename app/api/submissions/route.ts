@@ -10,6 +10,8 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status')
 
     // First, try to fetch from submissions table (new approach)
+    // Note: We don't join drawings table because there's no foreign key relationship
+    // We'll look up drawings manually if needed
     let submissionsQuery = supabase
       .from('submissions')
       .select(`
@@ -17,14 +19,7 @@ export async function GET(request: NextRequest) {
         projects:project_id (
           id,
           project_name,
-          project_number,
-          job_number
-        ),
-        drawings:drawing_id (
-          id,
-          dwg,
-          description,
-          pdf_path
+          project_number
         )
       `)
       .order('submission_date', { ascending: false })
@@ -36,29 +31,49 @@ export async function GET(request: NextRequest) {
 
     const { data: submissionsData, error: submissionsError } = await submissionsQuery
 
-    // If submissions table exists and has data, use it
-    if (!submissionsError && submissionsData && submissionsData.length > 0) {
+    // Check for actual errors
+    if (submissionsError) {
+      // PGRST116 = relation does not exist
+      // PGRST202 = permission denied
+      // PGRST204 = schema cache miss (table might exist but not in cache yet)
+      if (submissionsError.code === 'PGRST116') {
+        console.log('Submissions table does not exist')
+        return createSuccessResponse([])
+      }
+      // Log other errors for debugging but still return empty array
+      console.error('Error fetching submissions:', {
+        code: submissionsError.code,
+        message: submissionsError.message,
+        details: submissionsError.details,
+        hint: submissionsError.hint
+      })
+      return createSuccessResponse([])
+    }
+
+    // If submissions table exists (even if empty), process the data
+    if (submissionsData) {
+      // If table is empty, return empty array (no error)
+      if (submissionsData.length === 0) {
+        console.log('Submissions table exists but is empty. Run seed data if needed.')
+        return createSuccessResponse([])
+      }
       const submissions = submissionsData.map((submission: any) => {
         const project = Array.isArray(submission.projects) 
           ? submission.projects[0] 
           : submission.projects || {}
-        
-        const drawing = Array.isArray(submission.drawings)
-          ? submission.drawings[0]
-          : submission.drawings || {}
 
         return {
           id: submission.id,
-          proNumber: project.project_number || project.job_number || '—',
+          proNumber: project.project_number || '—',
           projectName: project.project_name || '—',
           submissionType: submission.submission_type || '—',
-          workDescription: submission.work_description || drawing.description || '—',
-          drawing: submission.drawing_number || drawing.dwg || '—',
+          workDescription: submission.work_description || '—',
+          drawing: submission.drawing_number || '—',
           sheets: submission.sheets || '—',
           submissionDate: submission.submission_date || '—',
           projectId: submission.project_id,
           releaseStatus: submission.release_status || '',
-          pdfPath: submission.pdf_path || drawing.pdf_path || '',
+          pdfPath: submission.pdf_path || '',
           status: submission.status,
           evaluationDate: submission.evaluation_date,
           submittedBy: submission.submitted_by,
@@ -69,59 +84,8 @@ export async function GET(request: NextRequest) {
       return createSuccessResponse(submissions)
     }
 
-    // Fallback to drawings table for backward compatibility
-    // This ensures the API still works if submissions table doesn't exist yet
-    console.log('Submissions table not found or empty, falling back to drawings table')
-    
-    let drawingsQuery = supabase
-      .from('drawings')
-      .select(`
-        *,
-        projects:project_id (
-          id,
-          project_name,
-          project_number,
-          job_number
-        )
-      `)
-      .in('status', ['APP', 'R&R', 'FFU', 'PENDING'])
-      .order('latest_submitted_date', { ascending: false })
-
-    if (status) {
-      drawingsQuery = drawingsQuery.eq('status', status)
-    }
-
-    const { data: drawings, error: drawingsError } = await drawingsQuery
-
-    if (drawingsError) {
-      console.error('Error fetching drawings for submissions:', drawingsError)
-      return createSuccessResponse([])
-    }
-
-    // Transform drawings into submission format
-    const submissions = (drawings || []).map((drawing: any) => {
-      const project = Array.isArray(drawing.projects) ? drawing.projects[0] : drawing.projects || {}
-      
-      // Extract revision from drawing number (e.g., "R-1" from "U2524_R-1_FFU")
-      const revisionMatch = drawing.dwg?.match(/R-(\d+)/i) || drawing.dwg?.match(/_(\d+)_/i)
-      const revision = revisionMatch ? revisionMatch[1] : '—'
-
-      return {
-        id: drawing.id,
-        proNumber: project.project_number || project.job_number || project.jobNumber || '—',
-        projectName: project.project_name || project.projectName || '—',
-        submissionType: drawing.status || '—',
-        workDescription: drawing.description || '—',
-        drawing: drawing.dwg || '—',
-        sheets: revision,
-        submissionDate: drawing.latest_submitted_date || drawing.latestSubmittedDate || '—',
-        projectId: drawing.project_id,
-        releaseStatus: drawing.release_status || drawing.releaseStatus || '',
-        pdfPath: drawing.pdf_path || drawing.pdfPath || '',
-      }
-    })
-
-    return createSuccessResponse(submissions)
+    // If we get here, submissionsData is null/undefined (shouldn't happen with proper error handling)
+    return createSuccessResponse([])
   } catch (error) {
     return handleApiError(error)
   }

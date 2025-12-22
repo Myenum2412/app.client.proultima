@@ -75,105 +75,16 @@ import {
 // ** Contact List **
 const contactList = [
   {
-    name: "Manoj Rayi",
+    name: "Vel",
     message: "Your Last Message Here",
-    image: "https://github.com/rayimanoj8.png",
+    // image: "https://github.com/rayimanoj8.png",
   },
   {
-    name: "Anjali Kumar",
-    message: "Hello, how are you?",
-    image: "https://randomuser.me/api/portraits/women/2.jpg",
+    name: "Sathish",
+    message: "Your Last Message Here",
+    // image: "https://github.com/rayimanoj8.png",
   },
-  {
-    name: "Ravi Teja",
-    message: "Looking forward to the meeting.",
-    image: "https://randomuser.me/api/portraits/men/3.jpg",
-  },
-  {
-    name: "Sneha Reddy",
-    message: "Can you send the report?",
-    image: "https://randomuser.me/api/portraits/women/4.jpg",
-  },
-  {
-    name: "Arjun Das",
-    message: "Thank you for your help!",
-    image: "https://randomuser.me/api/portraits/men/5.jpg",
-  },
-  {
-    name: "Priya Sharma",
-    message: "Let's catch up soon.",
-    image: "https://randomuser.me/api/portraits/women/6.jpg",
-  },
-  {
-    name: "Vikram Singh",
-    message: "I will call you later.",
-    image: "https://randomuser.me/api/portraits/men/7.jpg",
-  },
-  {
-    name: "Kavya Rao",
-    message: "Did you receive my email?",
-    image: "https://randomuser.me/api/portraits/women/8.jpg",
-  },
-  {
-    name: "Rahul Verma",
-    message: "Meeting rescheduled to tomorrow.",
-    image: "https://randomuser.me/api/portraits/men/9.jpg",
-  },
-  {
-    name: "Deepika Nair",
-    message: "Happy birthday! Have a great day!",
-    image: "https://randomuser.me/api/portraits/women/10.jpg",
-  },
-  {
-    name: "Rohit Malhotra",
-    message: "What's the update?",
-    image: "https://randomuser.me/api/portraits/men/11.jpg",
-  },
-  {
-    name: "Neha Gupta",
-    message: "Hope you're doing well!",
-    image: "https://randomuser.me/api/portraits/women/12.jpg",
-  },
-  {
-    name: "Amit Yadav",
-    message: "Let's finalize the project.",
-    image: "https://randomuser.me/api/portraits/men/13.jpg",
-  },
-  {
-    name: "Simran Kaur",
-    message: "Good morning!",
-    image: "https://randomuser.me/api/portraits/women/14.jpg",
-  },
-  {
-    name: "Varun Chopra",
-    message: "I'll send the documents soon.",
-    image: "https://randomuser.me/api/portraits/men/15.jpg",
-  },
-  {
-    name: "Meera Joshi",
-    message: "How was your weekend?",
-    image: "https://randomuser.me/api/portraits/women/16.jpg",
-  },
-  {
-    name: "Karthik Reddy",
-    message: "Please confirm the time.",
-    image: "https://randomuser.me/api/portraits/men/17.jpg",
-  },
-  {
-    name: "Pooja Sharma",
-    message: "See you at the event!",
-    image: "https://randomuser.me/api/portraits/women/18.jpg",
-  },
-  {
-    name: "Sandeep Kumar",
-    message: "Just checking in.",
-    image: "https://randomuser.me/api/portraits/men/19.jpg",
-  },
-  {
-    name: "Lavanya Patel",
-    message: "Don't forget the meeting.",
-    image: "https://randomuser.me/api/portraits/women/20.jpg",
-  },
+ 
 ];
 
 // ** Sidebar Menu Items **
@@ -328,7 +239,7 @@ export const ChatTemplate = () => {
                         transition={{ duration: 0.2 }}
                       >
                         <Avatar className="h-10 w-10 shrink-0">
-                          <AvatarImage src={contact.image} />
+                          {/* <AvatarImage src={contact.image} /> */}
                           <AvatarFallback>{contact.name[0]}</AvatarFallback>
                         </Avatar>
                       </motion.div>
@@ -380,7 +291,7 @@ export const ChatTemplate = () => {
                 transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
               >
                 <Avatar className="h-10 w-10 shrink-0">
-                  <AvatarImage src={currentChat?.image} />
+                  {/* <AvatarImage src={currentChat?.image} /> */}
                   <AvatarFallback>{currentChat?.name[0]}</AvatarFallback>
                 </Avatar>
               </motion.div>

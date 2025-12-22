@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { ApiResponse } from '@/lib/api/utils'
+import { Submission } from '@/components/submissions-table'
 
 interface UseSubmissionsOptions {
   status?: string
+  initialData?: Submission[]
 }
 
 const fetchSubmissions = async (options?: UseSubmissionsOptions) => {
@@ -37,6 +39,7 @@ export function useSubmissions(options?: UseSubmissionsOptions) {
   return useQuery({
     queryKey: ['submissions', options?.status],
     queryFn: () => fetchSubmissions(options),
+    initialData: options?.initialData,
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
   })

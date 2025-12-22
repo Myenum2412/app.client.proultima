@@ -61,6 +61,11 @@ const data = {
       url: "/projects",
       icon: Folder,
     },
+    {
+      title: "Submissions",
+      url: "/submissions",
+      icon: ClipboardList,
+    },
    
     {
       title: "Billing & Invoices",
