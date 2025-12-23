@@ -1,56 +1,61 @@
+import type { Metadata } from "next";
 import { AppSidebar } from "@/components/app-sidebar";
-import BillingAndInvoices from "@/components/BillingAndInvoices";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
+import type { SidebarUser } from "@/components/app-sidebar";
+import { TopHeader } from "@/components/app/top-header";
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { getInvoicesServer, transformServerInvoice } from "@/lib/supabase/invoices-server";
+import { requireUser } from "@/lib/auth/server";
+import { BillingInvoicesTable } from "@/components/billing/billing-invoices-table";
+import { BillingOverview } from "@/components/billing/billing-overview";
+import { QueryBoundary } from "@/components/query/query-boundary";
 
-export default async function Page() {
-  // Fetch invoices server-side for SSR optimization
-  const serverInvoices = await getInvoicesServer();
-  const initialInvoices = serverInvoices.map(transformServerInvoice);
+export const metadata: Metadata = {
+  title: "Billing & Invoices",
+  description: "View and manage invoices, payments, and billing information",
+};
+
+export default async function BillingPage() {
+  const user = await requireUser();
+
+  const displayName =
+    (typeof user.user_metadata?.full_name === "string" &&
+      user.user_metadata.full_name) ||
+    (user.email ? user.email.split("@")[0] : "User");
+
+  const avatar =
+    (typeof user.user_metadata?.avatar_url === "string" &&
+      user.user_metadata.avatar_url) ||
+    "/image/profile.jpg";
+
+  const sidebarUser: SidebarUser = {
+    name: displayName,
+    email: user.email ?? "",
+    avatar,
+  };
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar user={sidebarUser} />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator
-              orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4"
-            />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Client Dashboard
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Billing & Invoices</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-        </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <BillingAndInvoices initialInvoices={initialInvoices} />
+        <TopHeader
+          section="Billing"
+          page="Billing & Invoices"
+          search={{ placeholder: "Search invoices...", action: "/billing", name: "q" }}
+        />
+        <div className="min-h-0 flex flex-1 flex-col gap-4 overflow-y-auto p-4 pt-0">
+          <QueryBoundary
+            loadingTitle="Loading billing data..."
+            loadingSubtitle="Fetching invoice information"
+          >
+            <BillingOverview />
+            <BillingInvoicesTable />
+          </QueryBoundary>
         </div>
       </SidebarInset>
     </SidebarProvider>
   );
 }
+
+

@@ -1,56 +1,63 @@
-import { AppSidebar } from "@/components/app-sidebar";
-import Dashboard from "@/components/Dashboard/Dashboard";
-import MaxWidthWrapper from "@/components/MaxWidthWrapper";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
+import type { Metadata } from "next";
+import { AppSidebar } from "@/components/app-sidebar"
+import type { SidebarUser } from "@/components/app-sidebar"
+import { TopHeader } from "@/components/app/top-header"
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+} from "@/components/ui/sidebar"
+import { QueryBoundary } from "@/components/query/query-boundary"
+import { requireUser } from "@/lib/auth/server"
+import { DashboardClient } from "./dashboard-client"
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "View project metrics, statistics, and schedule meetings",
+};
 
 export default async function Page() {
+  const user = await requireUser()
+
+  const displayName =
+    (typeof user.user_metadata?.full_name === "string" &&
+      user.user_metadata.full_name) ||
+    (user.email ? user.email.split("@")[0] : "User")
+
+  const avatar =
+    (typeof user.user_metadata?.avatar_url === "string" &&
+      user.user_metadata.avatar_url) ||
+    "/image/profile.jpg"
+
+  const sidebarUser: SidebarUser = {
+    name: displayName,
+    email: user.email ?? "",
+    avatar,
+  }
+
+  const initialMe = {
+    id: user.id,
+    email: user.email ?? null,
+    user_metadata: user.user_metadata ?? {},
+  }
+
   return (
-    <div className="w-full overflow-hidden">
-      <MaxWidthWrapper>
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset className="overflow-x-hidden">
-            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-              <div className="flex items-center gap-2 px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator
-                  orientation="vertical"
-                  className="mr-2 data-[orientation=vertical]:h-4"
-                />
-                <Breadcrumb>
-                  <BreadcrumbList>
-                    <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink href="#">
-                        Client Dashboard
-                      </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator className="hidden md:block" />
-                    <BreadcrumbItem>
-                      <BreadcrumbPage>Dashboard</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  </BreadcrumbList>
-                </Breadcrumb>
-              </div>
-            </header>
-            <div className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-hidden">
-              <Dashboard />
-            </div>
-          </SidebarInset>
-        </SidebarProvider>
-      </MaxWidthWrapper>
-    </div>
-  );
+    <SidebarProvider>
+      <AppSidebar user={sidebarUser} />
+      <SidebarInset>
+        <TopHeader
+          section="Dashboard"
+          page="Overview"
+          search={{ placeholder: "Search...", action: "/dashboard", name: "q" }}
+        />
+        <div className="min-h-0 flex flex-1 flex-col gap-4 overflow-y-auto p-4 pt-0">
+          <QueryBoundary
+            loadingTitle="Loading dashboard..."
+            loadingSubtitle="Validating your session and fetching your data"
+          >
+            <DashboardClient initialMe={initialMe} />
+          </QueryBoundary>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  )
 }

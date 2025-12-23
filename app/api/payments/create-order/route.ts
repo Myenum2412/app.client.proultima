@@ -1,84 +1,98 @@
-import { NextRequest } from 'next/server'
-import Razorpay from 'razorpay'
-import { createSuccessResponse, createErrorResponse, handleApiError } from '@/lib/api/utils'
-import { createServerClient } from '@/lib/supabase/server'
-import { RazorpayOrderRequest, RazorpayOrderResponse } from '@/lib/types/payment'
+import { NextResponse } from "next/server";
+import { requireUser } from "@/lib/auth/server";
+import { razorpayClient, isRazorpayConfigured } from "@/lib/razorpay/client";
 
-export async function POST(request: NextRequest) {
+export const dynamic = "force-dynamic";
+
+export async function POST(request: Request) {
   try {
-    const supabase = createServerClient(request)
+    const user = await requireUser();
+    const body = await request.json();
 
-    const body: RazorpayOrderRequest = await request.json()
-    const { invoiceId, amount } = body
+    const { amount, invoiceId, invoiceNo, currency = "INR" } = body;
 
-    if (!invoiceId) {
-      return createErrorResponse('Invoice ID is required', 400)
+    if (!amount || !invoiceId || !invoiceNo) {
+      return NextResponse.json(
+        { error: "Missing required fields: amount, invoiceId, invoiceNo" },
+        { status: 400 }
+      );
     }
 
-    if (!amount || amount <= 0) {
-      return createErrorResponse('Invalid payment amount', 400)
+    // Validate Razorpay configuration
+    if (!isRazorpayConfigured()) {
+      console.error("Razorpay credentials not configured");
+      return NextResponse.json(
+        { 
+          error: "Payment gateway not configured. Please contact support.",
+          message: "Razorpay credentials are missing from server configuration"
+        },
+        { status: 500 }
+      );
     }
 
-    // Get Razorpay credentials from environment
-    const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
-    const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET
-
-    if (!razorpayKeyId || !razorpayKeySecret) {
-      console.error('Razorpay credentials not configured')
-      return createErrorResponse('Payment gateway not configured. Please contact administrator.', 500)
+    // Validate amount
+    if (amount <= 0 || !Number.isFinite(amount)) {
+      return NextResponse.json(
+        { error: "Invalid amount. Amount must be a positive number." },
+        { status: 400 }
+      );
     }
 
-    // Fetch invoice to verify it exists and get co_price
-    const { data: invoice, error: invoiceError } = await supabase
-      .from('invoices')
-      .select('id, invoice_id, project_name, co_price, status')
-      .eq('id', invoiceId)
-      .single()
+    // Convert amount to paise (Razorpay uses smallest currency unit)
+    const amountInPaise = Math.round(amount * 100);
 
-    if (invoiceError || !invoice) {
-      return createErrorResponse('Invoice not found', 404)
+    // Validate minimum amount (Razorpay minimum is 1 INR = 100 paise)
+    if (amountInPaise < 100) {
+      return NextResponse.json(
+        { error: "Amount must be at least 1.00 INR" },
+        { status: 400 }
+      );
     }
 
-    // Check if invoice is already paid
-    if (invoice.status === 'Paid') {
-      return createErrorResponse('This invoice has already been paid', 400)
-    }
-
-    // Use co_price from invoice (in rupees)
-    const paymentAmount = invoice.co_price || amount
-
-    // Initialize Razorpay
-    const razorpay = new Razorpay({
-      key_id: razorpayKeyId,
-      key_secret: razorpayKeySecret,
-    })
-
-    // Create order in Razorpay (amount in paise)
-    const orderAmount = Math.round(paymentAmount * 100) // Convert to paise
-
-    const orderOptions = {
-      amount: orderAmount,
-      currency: 'INR',
-      receipt: `invoice_${invoice.invoice_id}_${Date.now()}`,
+    // Create Razorpay order
+    const options = {
+      amount: amountInPaise,
+      currency: currency,
+      receipt: `invoice_${invoiceNo}_${Date.now()}`,
       notes: {
-        invoice_id: invoice.invoice_id,
-        project_name: invoice.project_name,
+        invoiceId,
+        invoiceNo,
+        userId: user.id,
+        userEmail: user.email,
       },
+    };
+
+    const order = await razorpayClient.orders.create(options as any);
+
+    return NextResponse.json({
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      receipt: order.receipt,
+    });
+  } catch (error: any) {
+    console.error("Error creating Razorpay order:", error);
+    
+    // Provide more specific error messages
+    let errorMessage = "Failed to create payment order";
+    let statusCode = 500;
+
+    if (error.error) {
+      // Razorpay API error
+      errorMessage = error.error.description || error.error.reason || error.message || errorMessage;
+      statusCode = error.statusCode || 500;
+    } else if (error.message) {
+      errorMessage = error.message;
     }
 
-    const razorpayOrder = await razorpay.orders.create(orderOptions)
-
-    const response: RazorpayOrderResponse = {
-      orderId: razorpayOrder.id,
-      keyId: razorpayKeyId,
-      amount: paymentAmount,
-      currency: 'INR',
-    }
-
-    return createSuccessResponse(response)
-  } catch (error) {
-    console.error('Error creating Razorpay order:', error)
-    return handleApiError(error)
+    return NextResponse.json(
+      { 
+        error: errorMessage,
+        message: errorMessage,
+        details: process.env.NODE_ENV === "development" ? error.stack : undefined
+      },
+      { status: statusCode }
+    );
   }
 }
 

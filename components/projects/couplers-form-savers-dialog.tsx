@@ -16,116 +16,36 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { demoCouplersFormSavers } from "@/public/assets";
 
-export const demoCouplersFormSavers = [
-  {
-    sNo: 1,
-    dwgNo: "R-71",
-    description: "Mechanical Coupler Type A",
-    type: "Coupler",
-    code: "CPL-A",
-    qtyPerBarSize: {
-      bar4: 12,
-      bar5: 8,
-      bar6: 15,
-      bar7: 0,
-      bar8: 20,
-      bar9: 0,
-      bar10: 10,
-      bar11: 0,
-      bar14: 5,
-      bar18: 0,
-    },
-    remarks: "Standard installation",
-  },
-  {
-    sNo: 2,
-    dwgNo: "R-45",
-    description: "Form Saver Type B",
-    type: "Form Saver",
-    code: "FS-B",
-    qtyPerBarSize: {
-      bar4: 0,
-      bar5: 6,
-      bar6: 10,
-      bar7: 8,
-      bar8: 12,
-      bar9: 0,
-      bar10: 0,
-      bar11: 4,
-      bar14: 0,
-      bar18: 2,
-    },
-    remarks: "Pre-fabricated",
-  },
-  {
-    sNo: 3,
-    dwgNo: "R-28",
-    description: "Threaded Coupler Type C",
-    type: "Coupler",
-    code: "CPL-C",
-    qtyPerBarSize: {
-      bar4: 5,
-      bar5: 0,
-      bar6: 8,
-      bar7: 12,
-      bar8: 15,
-      bar9: 10,
-      bar10: 8,
-      bar11: 0,
-      bar14: 6,
-      bar18: 4,
-    },
-    remarks: "As per drawing",
-  },
-  {
-    sNo: 4,
-    dwgNo: "S-12",
-    description: "Form Saver Type D",
-    type: "Form Saver",
-    code: "FS-D",
-    qtyPerBarSize: {
-      bar4: 8,
-      bar5: 10,
-      bar6: 0,
-      bar7: 6,
-      bar8: 8,
-      bar9: 12,
-      bar10: 0,
-      bar11: 5,
-      bar14: 0,
-      bar18: 0,
-    },
-    remarks: "Hot-dip galvanized",
-  },
-  {
-    sNo: 5,
-    dwgNo: "R-88",
-    description: "Mechanical Coupler Type E",
-    type: "Coupler",
-    code: "CPL-E",
-    qtyPerBarSize: {
-      bar4: 0,
-      bar5: 4,
-      bar6: 6,
-      bar7: 8,
-      bar8: 10,
-      bar9: 0,
-      bar10: 12,
-      bar11: 8,
-      bar14: 6,
-      bar18: 3,
-    },
-    remarks: "Grade A36",
-  },
-] as const;
+export type CouplersFormSaversRow = {
+  sNo: number;
+  dwgNo: string;
+  description: string;
+  type: string;
+  code: string;
+  qtyPerBarSize: {
+    bar4?: number;
+    bar5?: number;
+    bar6?: number;
+    bar7?: number;
+    bar8?: number;
+    bar9?: number;
+    bar10?: number;
+    bar11?: number;
+    bar14?: number;
+    bar18?: number;
+  };
+  remarks: string;
+};
 
-interface CouplersFormSaversDialogProps {
+export function CouplersFormSaversDialog({
+  open,
+  onOpenChange,
+}: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}
-
-export function CouplersFormSaversDialog({ open, onOpenChange }: CouplersFormSaversDialogProps) {
+}) {
   const data = demoCouplersFormSavers;
 
   return (

@@ -1,538 +1,439 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
+import * as React from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Paperclip,
-  Mic,
   Send,
-  Smile,
-  History,
-  Calendar,
-  Check,
-  CheckCheck,
-  X,
-  User,
   Phone,
   Video,
   Monitor,
   Clock,
-} from "lucide-react"
-import { motion, AnimatePresence } from "motion/react"
-import EmojiPicker, { EmojiClickData } from "emoji-picker-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
+  Calendar,
+  RotateCcw,
+  CheckCheck,
+  Paperclip,
+  Mic,
+  Square,
+} from "lucide-react";
+import Image from "next/image";
+import { motion } from "motion/react";
 
-interface Message {
-  id: string
-  text: string
-  timestamp: Date
-  isSent: boolean
-  status: "sending" | "sent" | "delivered" | "read"
-  files?: File[]
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import { useChatMessages, useSendChatMessage } from "@/lib/hooks/use-api";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AIBranch,
+  AIBranchMessages,
+  AIBranchSelector,
+  AIBranchPrevious,
+  AIBranchNext,
+  AIBranchPage,
+} from "@/components/smoothui/ai-branch";
+import { EmojiPicker } from "@/components/chat/emoji-picker";
+import { FilePreviewList } from "@/components/chat/file-preview";
+import { InfiniteScrollTrigger } from "@/components/ui/infinite-scroll-trigger";
+
+type ChatMessage = {
+  id: string;
+  role: "me" | "system";
+  text: string;
+  at: string;
+  isRead?: boolean;
+};
+
+function nowTime() {
+  return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-interface ChatMessage {
-  id: string
-  text: string
-  timestamp: Date
-  isSent: boolean
-  status: "sending" | "sent" | "delivered" | "read"
+function formatTime(dateString: string) {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-export function ChatInterface() {
-  const [message, setMessage] = useState("")
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "1",
-      text: "Hello! How can I help you today?",
-      timestamp: new Date(Date.now() - 3600000),
-      isSent: false,
-      status: "read",
-    },
-    {
-      id: "2",
-      text: "Hi! I need some information about the project status.",
-      timestamp: new Date(Date.now() - 3300000),
-      isSent: true,
-      status: "read",
-    },
-  ])
-  const [isRecording, setIsRecording] = useState(false)
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
-  const [showHistory, setShowHistory] = useState(false)
-  const [showScheduleMeeting, setShowScheduleMeeting] = useState(false)
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+type ApiMessage = {
+  id: string;
+  role: "me" | "system";
+  text: string;
+  created_at: string;
+};
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+export function ChatInterface({ projectId }: { projectId?: string }) {
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useChatMessages(projectId, {
+    meta: { errorMessage: "Failed to load messages." },
+  });
+  const sendMessage = useSendChatMessage();
 
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+  // Flatten all pages of messages
+  const messages: ChatMessage[] = React.useMemo(() => {
+    if (!data) return [];
+    // Check if data has pages (useInfiniteQuery format) or is a direct response
+    const allMessages = (data as any)?.pages 
+      ? (data as any).pages.flatMap((page: any) => page.data ?? [])
+      : (data as any)?.data ?? [];
+    return allMessages.map((m: any) => ({
+      id: String(m.id),
+      role: m.role,
+      text: m.text,
+      at: formatTime(m.created_at),
+      isRead: m.role === "me", // Assume user messages are read
+    }));
+  }, [data]);
 
-  const handleSend = () => {
-    if (!message.trim() && selectedFiles.length === 0) return
+  // Group messages into conversation branches (user message + AI response pairs)
+  const conversationBranches = React.useMemo(() => {
+    const branches: ChatMessage[][] = [];
+    let currentBranch: ChatMessage[] = [];
 
-    const newMessage: ChatMessage = {
-      id: Date.now().toString(),
-      text: message,
-      timestamp: new Date(),
-      isSent: true,
-      status: "sending",
+    messages.forEach((msg) => {
+      if (msg.role === "me") {
+        // Start a new branch when we encounter a user message
+        if (currentBranch.length > 0) {
+          branches.push(currentBranch);
+        }
+        currentBranch = [msg];
+      } else {
+        // Add AI/system responses to the current branch
+        currentBranch.push(msg);
+      }
+    });
+
+    // Add the last branch if it exists
+    if (currentBranch.length > 0) {
+      branches.push(currentBranch);
     }
 
-    setMessages((prev) => [...prev, newMessage])
-    setMessage("")
-    setSelectedFiles([])
+    return branches;
+  }, [messages]);
 
-    // Simulate message delivery
-    setTimeout(() => {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === newMessage.id ? { ...msg, status: "sent" } : msg
-        )
-      )
-    }, 500)
+  const [text, setText] = React.useState("");
+  const [files, setFiles] = React.useState<File[]>([]);
+  const [isRecording, setIsRecording] = React.useState(false);
+  const [mediaRecorder, setMediaRecorder] = React.useState<MediaRecorder | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const bottomRef = React.useRef<HTMLDivElement | null>(null);
 
-    // Simulate message read
-    setTimeout(() => {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === newMessage.id ? { ...msg, status: "read" } : msg
-        )
-      )
-    }, 2000)
-  }
+  React.useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: "end" });
+  }, [messages.length]);
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSend()
-    }
-  }
+  // Cleanup media recorder on unmount
+  React.useEffect(() => {
+    return () => {
+      if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+      }
+    };
+  }, [mediaRecorder, isRecording]);
+
+  // Remove old mutation - using hook instead
+  //   // Using centralized hook instead
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setSelectedFiles(Array.from(e.target.files))
+    const selectedFiles = Array.from(e.target.files || []);
+    setFiles((prev) => [...prev, ...selectedFiles]);
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
-  }
+  };
 
-  const handleEmojiClick = (emojiData: EmojiClickData) => {
-    setMessage((prev) => prev + emojiData.emoji)
-    setShowEmojiPicker(false)
-    inputRef.current?.focus()
-  }
+  const handleRemoveFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
 
-  const handleMicClick = () => {
-    setIsRecording(!isRecording)
-    // Add voice recording logic here
-  }
+  const handleEmojiSelect = (emoji: string) => {
+    setText((prev) => prev + emoji);
+  };
 
-  const getStatusIcon = (status: ChatMessage["status"]) => {
-    switch (status) {
-      case "sending":
-        return <div className="h-3 w-3 rounded-full bg-muted animate-pulse" />
-      case "sent":
-        return <Check className="h-3 w-3 text-muted-foreground" />
-      case "delivered":
-        return <CheckCheck className="h-3 w-3 text-muted-foreground" />
-      case "read":
-        return <CheckCheck className="h-3 w-3 text-blue-500" />
-      default:
-        return null
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        const audioFile = new File([blob], `recording-${Date.now()}.webm`, {
+          type: "audio/webm",
+        });
+        setFiles((prev) => [...prev, audioFile]);
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Error starting recording:", error);
+      alert("Failed to start recording. Please check microphone permissions.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      setMediaRecorder(null);
+    }
+  };
+
+  function send() {
+    const trimmed = text.trim();
+    if (trimmed || files.length > 0) {
+      sendMessage.mutate(
+        {
+          projectId,
+          message: trimmed,
+          files: files.length > 0 ? files : undefined,
+          // audio: audioBlob || undefined, // TODO: Add audio blob state if needed
+        },
+        {
+          onSuccess: () => {
+            setText("");
+            setFiles([]);
+            // setAudioBlob(null); // TODO: Add audio blob state if needed
+          },
+        }
+      );
     }
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-background">
-      {/* Contact Info Panel */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b bg-card">
-        <Avatar className="h-12 w-12 bg-yellow-500">
-          <AvatarImage src="/image/profile.jpg" alt="Vel" />
-          <AvatarFallback className="bg-yellow-500 text-black">
-            <User className="h-6 w-6" />
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1">
+    <div className="min-h-0 flex flex-1 flex-col p-4 pt-0">
+      {/* Chat Header */}
+      <div className="flex items-center justify-between border-b pb-4 mb-4">
+        <div className="flex items-center gap-4">
+          {/* Profile Picture */}
+          <div className="relative h-12 w-12 rounded-full bg-black flex items-center justify-center overflow-hidden">
+            <div className="h-8 w-8 bg-yellow-400 rounded-full" />
+          </div>
+          
+          {/* Name and Status */}
+          <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-base">Vel</h3>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-50 dark:bg-green-950/20 rounded-full">
-              <div className="h-2 w-2 rounded-full bg-green-500"></div>
-              <span className="text-xs font-medium text-green-600 dark:text-green-500">
+              <h2 className="text-xl font-bold">Vel</h2>
+              <div className="flex items-center gap-1.5">
+                <div className="h-2 w-2 rounded-full bg-green-500" />
+                <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
                 Online
               </span>
             </div>
           </div>
           <p className="text-sm text-muted-foreground">Project Manager</p>
+          </div>
         </div>
         
-        {/* All Icons in Same Row on Right Side */}
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {}}
-            className="h-8 w-8"
-            title="Voice Call"
-          >
+        {/* Action Icons */}
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="h-9 w-9">
             <Phone className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {}}
-            className="h-8 w-8"
-            title="Video Call"
-          >
+          <Button variant="ghost" size="icon" className="h-9 w-9">
             <Video className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {}}
-            className="h-8 w-8"
-            title="Screen Share"
-          >
+          <Button variant="ghost" size="icon" className="h-9 w-9">
             <Monitor className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowHistory(true)}
-            className="h-8 w-8"
-            title="History"
-          >
+          <Button variant="ghost" size="icon" className="h-9 w-9">
             <Clock className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowScheduleMeeting(true)}
-            className="h-8 w-8"
-            title="Schedule Meeting"
-          >
+          <Button variant="ghost" size="icon" className="h-9 w-9">
             <Calendar className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowHistory(true)}
-            className="h-8 w-8"
-            title="Chat History"
-          >
-            <History className="h-4 w-4" />
+          <Button variant="ghost" size="icon" className="h-9 w-9">
+            <RotateCcw className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
+      {/* Chat Messages */}
+      <div className="min-h-0 flex-1 overflow-hidden rounded-xl border bg-background">
+        <ScrollArea className="h-[calc(100vh-16rem)] min-h-[400px]">
+          <div className="space-y-4 p-4">
+            {isLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-12 w-2/3" />
+                <Skeleton className="h-12 w-1/2 ml-auto" />
+                <Skeleton className="h-12 w-3/5" />
+              </div>
+            ) : null}
+            {!isLoading && messages.length === 0 ? (
+              <div className="text-sm text-muted-foreground text-center py-8">
+                No messages yet. Start a conversation!
+              </div>
+            ) : null}
+            {!isLoading && conversationBranches.length > 0 && (
+              <AIBranch className="w-full">
+                <AIBranchMessages>
+                  {conversationBranches.map((branch, branchIndex) => (
+                    <div key={`branch-${branchIndex}`} className="space-y-4">
+                      {branch.map((m) => (
+                        <div
+                          key={m.id}
               className={cn(
-                "flex gap-2",
-                msg.isSent ? "justify-end" : "justify-start"
-              )}
-            >
-              {!msg.isSent && (
-                <Avatar className="h-8 w-8 bg-yellow-500 shrink-0">
-                  <AvatarImage src="/image/profile.jpg" alt="Vel" />
-                  <AvatarFallback className="bg-yellow-500 text-black">
-                    <User className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
+                            "flex flex-col",
+                            m.role === "me" ? "items-end" : "items-start"
+                          )}
+                        >
+                          <div className="flex items-center gap-2 w-full">
+                            {m.role === "me" && (
+                              <AIBranchSelector from="user" className="flex-shrink-0">
+                                <AIBranchPrevious />
+                                <AIBranchPage />
+                                <AIBranchNext />
+                              </AIBranchSelector>
               )}
               <div
                 className={cn(
-                  "flex flex-col gap-1 max-w-[70%]",
-                  msg.isSent ? "items-end" : "items-start"
-                )}
-              >
-                <div
-                  className={cn(
-                    "rounded-lg px-4 py-2.5",
-                    msg.isSent
-                      ? "bg-gray-800 dark:bg-gray-900 text-white"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                  )}
-                >
-                  <p className="text-sm leading-relaxed">{msg.text}</p>
+                                "max-w-[min(680px,75%)] rounded-2xl px-4 py-3",
+                                m.role === "me"
+                                  ? "bg-blue-600 text-white"
+                                  : "bg-gray-100 text-foreground"
+                              )}
+                            >
+                              <div className="text-sm whitespace-pre-wrap">{m.text}</div>
+                            </div>
+                            {m.role === "system" && (
+                              <AIBranchSelector from="assistant" className="flex-shrink-0">
+                                <AIBranchPrevious />
+                                <AIBranchPage />
+                                <AIBranchNext />
+                              </AIBranchSelector>
+                            )}
                 </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground px-1">
-                  <span>{format(msg.timestamp, "h:mm a")}</span>
-                  {msg.isSent && getStatusIcon(msg.status)}
-                </div>
+                          <div className="flex items-center gap-1 mt-1">
+                            <span className="text-xs text-muted-foreground">{m.at}</span>
+                            {m.role === "me" && m.isRead && (
+                              <CheckCheck className="h-3 w-3 text-blue-600" />
+                            )}
               </div>
             </div>
           ))}
-          <div ref={messagesEndRef} />
-        </div>
-      </ScrollArea>
-
-      {/* Selected Files Preview */}
-      {selectedFiles.length > 0 && (
-        <div className="px-4 py-2 border-t bg-muted/50">
-          <div className="flex items-center gap-2 flex-wrap">
-            {selectedFiles.map((file, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-2 px-2 py-1 bg-background rounded-md border text-xs"
-              >
-                <Paperclip className="h-3 w-3" />
-                <span className="truncate max-w-[150px]">{file.name}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4"
-                  onClick={() =>
-                    setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
-                  }
-                >
-                  <X className="h-3 w-3" />
-                </Button>
               </div>
             ))}
+                </AIBranchMessages>
+              </AIBranch>
+            )}
+            <InfiniteScrollTrigger
+              onLoadMore={() => fetchNextPage()}
+              hasNextPage={hasNextPage ?? false}
+              isFetchingNextPage={isFetchingNextPage}
+            />
+            <div ref={bottomRef} />
           </div>
+        </ScrollArea>
         </div>
-      )}
+
+      {/* Message Input */}
+      <div className="pt-4 border-t space-y-2">
+        {/* File Previews */}
+        <FilePreviewList files={files} onRemove={handleRemoveFile} />
 
       {/* Input Area */}
-      <div className="p-4 border-t bg-card">
-        <div className="flex items-center gap-2">
+        <div className="flex items-end gap-2">
+          {/* File Upload Button */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 shrink-0"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
           <input
             ref={fileInputRef}
             type="file"
             multiple
             className="hidden"
             onChange={handleFileSelect}
+            accept="image/*,application/pdf,.doc,.docx,.txt,.csv,.json"
           />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => fileInputRef.current?.click()}
-            className="h-9 w-9 shrink-0"
-            title="Attach File"
-          >
-            <Paperclip className="h-4 w-4" />
-          </Button>
 
+          {/* Text Input */}
+          <Input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Type a message..."
+            className="flex-1"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                send();
+              }
+            }}
+          />
+
+          {/* Emoji Picker */}
+          <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+
+          {/* Microphone Button */}
+          {!isRecording ? (
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
           <Button
+                type="button"
             variant="ghost"
             size="icon"
-            onClick={handleMicClick}
-            className={cn(
-              "h-9 w-9 shrink-0",
-              isRecording && "text-destructive"
-            )}
-            title="Voice Message"
-          >
-            <AnimatePresence mode="wait">
-              {isRecording ? (
-                <motion.div
-                  key="recording"
-                  initial={{ scale: 0.8 }}
-                  animate={{ scale: [1, 1.2, 1] }}
-                  exit={{ scale: 0.8 }}
-                  transition={{
-                    duration: 1,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  className="relative"
+            className="h-9 w-9 shrink-0"
+                onClick={startRecording}
                 >
                   <Mic className="h-4 w-4" />
-                  <motion.div
-                    className="absolute inset-0 rounded-full bg-destructive/20"
-                    animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
-                    transition={{
-                      duration: 1,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
-                  />
+              </Button>
                 </motion.div>
               ) : (
                 <motion.div
-                  key="idle"
-                  initial={{ scale: 0.8 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0.8 }}
-                >
-                  <Mic className="h-4 w-4" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </Button>
-
-          <div className="flex-1 relative">
-            <Input
-              ref={inputRef}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Type a message..."
-              className="pr-10"
-            />
-            <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                  title="Emoji"
-                >
-                  <Smile className="h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 border-0" align="end">
-                <EmojiPicker
-                  onEmojiClick={handleEmojiClick}
-                  autoFocusSearch={false}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <Button
-            size="icon"
-            onClick={handleSend}
-            disabled={!message.trim() && selectedFiles.length === 0}
-            className="h-9 w-9 shrink-0 bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200"
-            title="Send Message"
-          >
-            <Send className="h-4 w-4 text-white dark:text-black" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Chat History Dialog */}
-      <Dialog open={showHistory} onOpenChange={setShowHistory}>
-        <DialogContent className="max-w-2xl max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>Chat History</DialogTitle>
-            <DialogDescription>
-              View your previous conversations
-            </DialogDescription>
-          </DialogHeader>
-          <ScrollArea className="max-h-[60vh]">
-            <div className="space-y-4">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className="flex flex-col gap-1 p-3 rounded-lg border"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
-                      {msg.isSent ? "You" : "John Doe"}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {format(msg.timestamp, "MMM dd, yyyy HH:mm")}
-                    </span>
-                  </div>
-                  <p className="text-sm">{msg.text}</p>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
-
-      {/* Schedule Meeting Dialog */}
-      <Dialog open={showScheduleMeeting} onOpenChange={setShowScheduleMeeting}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Schedule Meeting</DialogTitle>
-            <DialogDescription>
-              Schedule a meeting with Vel
-            </DialogDescription>
-          </DialogHeader>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              // Handle form submission here
-              setShowScheduleMeeting(false)
-            }}
-            className="space-y-4 py-4"
-          >
-            {/* Row 1: Meeting Title and Date & Time in 2 columns */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="meeting-title" className="text-sm font-medium">
-                  Meeting Title <span className="text-destructive">*</span>
-                </label>
-                <Input
-                  id="meeting-title"
-                  placeholder="Enter meeting title"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="meeting-date" className="text-sm font-medium">
-                  Date & Time <span className="text-destructive">*</span>
-                </label>
-                <Input
-                  id="meeting-date"
-                  type="datetime-local"
-                  required
-                  defaultValue={format(
-                    new Date(Date.now() + 86400000),
-                    "yyyy-MM-dd'T'HH:mm"
-                  )}
-                />
-              </div>
-            </div>
-            
-            {/* Row 2: Description in full width */}
-            <div className="space-y-2">
-              <label htmlFor="meeting-description" className="text-sm font-medium">
-                Description
-              </label>
-              <Input
-                id="meeting-description"
-                placeholder="Meeting agenda or description (optional)"
-                className="w-full"
-              />
-            </div>
-            
-            <div className="flex justify-end gap-2 pt-2">
+              initial={{ scale: 1 }}
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ repeat: Infinity, duration: 1 }}
+            >
               <Button
                 type="button"
-                variant="outline"
-                onClick={() => setShowScheduleMeeting(false)}
+                variant="destructive"
+                size="icon"
+                className="h-9 w-9 shrink-0"
+                onClick={stopRecording}
               >
-                Cancel
+                <Square className="h-4 w-4 fill-current" />
               </Button>
-              <Button type="submit">
-                <Calendar className="h-4 w-4 mr-2" />
-                Schedule Meeting
+            </motion.div>
+          )}
+
+          {/* Send Button */}
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button
+              onClick={send}
+              disabled={(!text.trim() && files.length === 0) || sendMessage.isPending}
+              size="icon"
+              className="h-9 w-9 shrink-0 bg-blue-600 hover:bg-blue-700"
+            >
+              <Send className="size-4" />
               </Button>
+          </motion.div>
+        </div>
             </div>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
-  )
+  );
 }
+
 

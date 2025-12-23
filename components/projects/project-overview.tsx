@@ -1,238 +1,187 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Truck, MapPin } from "lucide-react";
-import type { Project } from "./types";
-import { getStatusColor } from "./utils";
-import { EvaluationLogForm } from "@/components/evaluation-log-form";
-import { EvaluationLogDialog } from "@/components/Dashboard/EvaluationLogDialog";
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { Building2, MapPin } from "lucide-react";
 
-interface ProjectOverviewProps {
-  project: Project;
-  onEvaluationLogClick?: () => void;
-}
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { EvaluationLogDialog } from "@/components/dashboard/evaluation-log-dialog";
 
-export function ProjectOverview({ project, onEvaluationLogClick }: ProjectOverviewProps) {
-  const [isEvaluationFormOpen, setIsEvaluationFormOpen] = useState(false);
-  const [isEvaluationLogDialogOpen, setIsEvaluationLogDialogOpen] = useState(false);
-
-  const handleEvaluationClick = () => {
-    if (onEvaluationLogClick) {
-      onEvaluationLogClick();
-    } else {
-      setIsEvaluationFormOpen(true);
-    }
-  };
-
-  const handleViewEvaluationLogClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsEvaluationLogDialogOpen(true);
-  };
-
+function PercentPill({ value }: { value: string }) {
   return (
-    <>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={project.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-        >
-          <Card className="rounded-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>{project.projectName}</span>
-               
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 }}
-            >
-              <div className="text-sm text-gray-500">Project Name</div>
-              <div className="font-medium">{project.projectName}</div>
-            </motion.div> */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <div className="text-sm text-gray-500">Pro Number</div>
-              <div className="font-medium">{project.projectNumber}</div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-            >
-              <div className="text-sm text-gray-500">Job Number</div>
-              <div className="font-medium">{project.projectNumber}</div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <div className="text-sm text-gray-500">Fabricator Name</div>
-              <div className="font-medium">{project.clientName}</div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-            >
-              <div className="text-sm text-gray-500">Contractor Name</div>
-              <div className="font-medium flex items-center gap-2">
-                <Truck className="h-4 w-4" />
-                {project.contractor}
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="text-sm text-gray-500">Project Location</div>
-              <div className="font-medium flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                {project.projectLocation}
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-            >
-              <div className="text-sm text-gray-500">Estimated Tons</div>
-              <motion.div
-                className="font-medium cursor-pointer hover:text-primary transition-colors"
-                onClick={handleEvaluationClick}
-                title="Click to open Evaluation Log"
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.2 }}
-              >
-                {(project.estimatedTonnage || 0).toLocaleString()}
-              </motion.div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <div className="text-sm text-gray-500">
-                Detailed Tons per Approval dwgs
-              </div>
-              <div className="font-medium">
-                {(project.detailingTonsPerApproval || 0).toLocaleString()}
-                {project.estimatedTonnage > 0 &&
-                  ` (${Math.round(
-                    ((project.detailingTonsPerApproval || 0) /
-                      project.estimatedTonnage) *
-                      100
-                  )}%)`}
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45 }}
-            >
-              <div className="text-sm text-gray-500">
-                Detailed Tons per latest Rev/FFU
-              </div>
-              <div className="font-medium">
-                {(project.detailingTonsPerLatestRevFFU || 0).toLocaleString()}
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <div className="text-sm text-gray-500">
-                Released Tons (so far)
-              </div>
-              <div className="font-medium">
-                {(project.releasedTonsSoFar || 0).toLocaleString()}
-                {project.estimatedTonnage > 0 &&
-                  ` (${Math.round(
-                    ((project.releasedTonsSoFar || 0) /
-                      project.estimatedTonnage) *
-                      100
-                  )}%)`}
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.55 }}
-            >
-              <div className="text-sm text-gray-500">Detailing Status</div>
-              <Badge className={getStatusColor(project.status.detailing)}>
-                {project.status.detailing}
-              </Badge>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-            >
-              <div className="text-sm text-gray-500">Revision Status</div>
-              <Badge className={getStatusColor(project.status.revision)}>
-                {project.status.revision}
-              </Badge>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.65 }}
-            >
-              <div className="text-sm text-gray-500">Release Status</div>
-              <Badge className={getStatusColor(project.status.release)}>
-                {project.status.release}
-              </Badge>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
-            >
-              <div className="text-sm text-gray-500">Evaluation Log</div>
-              <button
-                onClick={handleViewEvaluationLogClick}
-                className="text-sm font-medium text-primary hover:underline transition-colors cursor-pointer"
-              >
-                View Evaluation Log
-              </button>
-            </motion.div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </AnimatePresence>
-
-      {/* Evaluation Log Form */}
-      <EvaluationLogForm
-        open={isEvaluationFormOpen}
-        onOpenChange={setIsEvaluationFormOpen}
-        projectNumber={project.projectNumber}
-        projectName={project.projectName}
-        estimatedTons={project.estimatedTonnage || 0}
-      />
-
-      {/* Evaluation Log Dialog */}
-      <EvaluationLogDialog
-        open={isEvaluationLogDialogOpen}
-        onOpenChange={setIsEvaluationLogDialogOpen}
-      />
-    </>
+    <span className="inline-flex items-center rounded-lg bg-emerald-200 px-2.5 py-1 text-sm font-semibold text-emerald-900">
+      {value}
+    </span>
   );
 }
+
+function StatusPill({
+  label,
+  variant = "success",
+}: {
+  label: string;
+  variant?: "success" | "neutral";
+}) {
+  if (variant === "success") {
+    return (
+      <Badge className="bg-emerald-600 text-white border-transparent px-4 py-1">
+        {label}
+      </Badge>
+    );
+  }
+  return (
+    <Badge className="bg-slate-600 text-white border-transparent px-4 py-1">
+      {label}
+    </Badge>
+  );
+}
+
+export type ProjectOverviewData = {
+  projectName: string;
+  jobNumber: string;
+  fabricatorName?: string | null;
+  contractorName?: string | null;
+  projectLocation?: string | null;
+  estimatedTons?: number | null;
+  approvalTons?: number | null;
+  latestRevTons?: number | null;
+  releasedTons?: number | null;
+  detailingStatus?: string | null;
+  revisionStatus?: string | null;
+  releaseStatus?: string | null;
+};
+
+export function ProjectOverview({ data }: { data: ProjectOverviewData }) {
+  const [isEvaluationLogOpen, setIsEvaluationLogOpen] = useState(false);
+  
+  const estimated = data.estimatedTons ?? null;
+  const approval = data.approvalTons ?? null;
+  const latest = data.latestRevTons ?? null;
+  const released = data.releasedTons ?? null;
+
+  const pct = (numerator: number | null, denom: number | null) => {
+    if (!numerator || !denom || denom === 0) return null;
+    return Math.round((numerator / denom) * 100);
+  };
+
+  const approvalPct = pct(approval, estimated);
+  const releasedPct = pct(released, estimated);
+
+  return (
+    <Card className="overflow-hidden">
+      <CardContent className="py-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="text-lg font-semibold">
+              {data.projectName}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <div className="text-sm text-muted-foreground">Job Number</div>
+            <div className="mt-1 text-base font-semibold">{data.jobNumber}</div>
+          </div>
+
+          <div>
+            <div className="text-sm text-muted-foreground">Fabricator Name</div>
+            <div className="mt-1 text-base font-semibold">
+              {data.fabricatorName ?? "—"}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-sm text-muted-foreground">Contractor Name</div>
+            <div className="mt-1 flex items-center gap-2 text-base font-semibold">
+              <Building2 className="size-4 text-muted-foreground" />
+              {data.contractorName ?? "—"}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-sm text-muted-foreground">Project Location</div>
+            <div className="mt-1 flex items-center gap-2 text-base font-semibold">
+              <MapPin className="size-4 text-muted-foreground" />
+              {data.projectLocation ?? "—"}
+            </div>
+          </div>
+
+          <div
+            className="cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
+            onClick={() => setIsEvaluationLogOpen(true)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setIsEvaluationLogOpen(true);
+              }
+            }}
+          >
+            <div className="text-sm text-muted-foreground">Estimated Tons</div>
+            <div className="mt-1 text-base font-semibold">
+              {estimated == null ? "—" : estimated.toFixed(1)}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-sm text-muted-foreground">
+              Detailed Tons per Approval dwgs
+            </div>
+            <div className="mt-1 flex items-center gap-3 text-base font-semibold">
+              {approval == null ? "—" : approval.toFixed(2)}{" "}
+              {approvalPct == null ? null : <PercentPill value={`${approvalPct}%`} />}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-sm text-muted-foreground">
+              Detailed Tons per latest Rev/FFU
+            </div>
+            <div className="mt-1 text-base font-semibold">
+              {latest == null ? "—" : latest.toFixed(2)}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-sm text-muted-foreground">
+              Released Tons (so far)
+            </div>
+            <div className="mt-1 flex items-center gap-3 text-base font-semibold">
+              {released == null ? "—" : released.toFixed(2)}{" "}
+              {releasedPct == null ? null : <PercentPill value={`${releasedPct}%`} />}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-sm text-muted-foreground">Detailing Status</div>
+            <div className="mt-2">
+              <StatusPill label={data.detailingStatus ?? "—"} variant="success" />
+            </div>
+          </div>
+
+          <div>
+            <div className="text-sm text-muted-foreground">Revision Status</div>
+            <div className="mt-2">
+              <StatusPill label={data.revisionStatus ?? "—"} variant="success" />
+            </div>
+          </div>
+
+          <div>
+            <div className="text-sm text-muted-foreground">Release Status</div>
+            <div className="mt-2">
+              <StatusPill label={data.releaseStatus ?? "—"} variant="neutral" />
+            </div>
+          </div>
+        </div>
+      </CardContent>
+      <EvaluationLogDialog
+        open={isEvaluationLogOpen}
+        onOpenChange={setIsEvaluationLogOpen}
+      />
+    </Card>
+  );
+}
+
 

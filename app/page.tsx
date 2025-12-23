@@ -1,19 +1,14 @@
-import MaxWidthWrapper from "@/components/MaxWidthWrapper";
-import { SignInPage } from "@/components/sign-in";
+import type { Metadata } from "next";
+import { redirect } from "next/navigation"
 
+import { getUser } from "@/lib/auth/server"
 
-const page = () => {
-  
-  return (
-    <MaxWidthWrapper>
-      <div className="flex items-center justify-center h-screen max-w-screen-lg mx-auto">
-        <SignInPage
-          heroImageSrc="/team.png"
-         
-        />
-      </div>
-    </MaxWidthWrapper>
-  );
+export const metadata: Metadata = {
+  title: "Home",
+  description: "Proultima - Project Management Platform",
 };
 
-export default page;
+export default async function Home() {
+  const user = await getUser()
+  redirect(user ? "/dashboard" : "/login")
+}

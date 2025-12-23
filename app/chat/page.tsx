@@ -1,54 +1,40 @@
 import { AppSidebar } from "@/components/app-sidebar";
-import { ChatTemplate } from "@/components/blocks/chat-template";
+import type { SidebarUser } from "@/components/app-sidebar";
+import { TopHeader } from "@/components/app/top-header";
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import { SidebarProviderChat } from "@/components/blocks/sidebar";
+import { requireUser } from "@/lib/auth/server";
+import { ChatInterface } from "@/components/chat-interface"
 
-export default function ChatPage() {
+export default async function ChatPage() {
+  const user = await requireUser();
+
+  const displayName =
+    (typeof user.user_metadata?.full_name === "string" &&
+      user.user_metadata.full_name) ||
+    (user.email ? user.email.split("@")[0] : "User");
+
+  const avatar =
+    (typeof user.user_metadata?.avatar_url === "string" &&
+      user.user_metadata.avatar_url) ||
+    "/image/profile.jpg";
+
+  const sidebarUser: SidebarUser = {
+    name: displayName,
+    email: user.email ?? "",
+    avatar,
+  };
+
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="overflow-x-hidden">
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator
-              orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4"
-            />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Client Dashboard
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Chat</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-        </header>
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <SidebarProviderChat>
-            <ChatTemplate />
-          </SidebarProviderChat>
-        </div>
+      <AppSidebar user={sidebarUser} />
+      <SidebarInset className="flex flex-col">
+        <ChatInterface />
       </SidebarInset>
     </SidebarProvider>
   );
 }
+
+

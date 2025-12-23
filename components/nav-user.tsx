@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   BadgeCheck,
   Bell,
@@ -27,6 +28,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -47,8 +49,38 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
   const [isPdfOpen, setIsPdfOpen] = useState(false)
   const [isBillingOpen, setIsBillingOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const brochureTitle = "Company Brochure"
+  const brochureDescription = "View the Proultima company brochure."
+  const brochurePdfUrl = "/assets/compan-brochure.pdf"
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true)
+      const response = await fetch("/api/auth/signout", {
+        method: "POST",
+        credentials: "include",
+      })
+
+      if (response.ok) {
+        // Clear any client-side state if needed
+        // Redirect to login page
+        router.push("/login")
+        router.refresh()
+      } else {
+        console.error("Logout failed")
+        alert("Failed to log out. Please try again.")
+      }
+    } catch (error) {
+      console.error("Logout error:", error)
+      alert("An error occurred during logout. Please try again.")
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
 
   return (
     <>
@@ -101,16 +133,12 @@ export function NavUser({
               </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
               <DropdownMenuItem
                 className="flex items-center gap-2 cursor-pointer"
                 onClick={() => setIsBillingOpen(true)}
               >
                 <CreditCard />
-                Billing
+                Account Information
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell />
@@ -118,9 +146,13 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+            >
               <LogOut />
-              Log out
+              {isLoggingOut ? "Logging out..." : "Log out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -128,15 +160,16 @@ export function NavUser({
     </SidebarMenu>
 
     <Dialog open={isPdfOpen} onOpenChange={setIsPdfOpen}>
-      <DialogContent className="max-w-[95vw] w-full max-h-[95vh] h-[90vh] p-0 flex flex-col">
-        <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
-          <DialogTitle>Company Brochure</DialogTitle>
+    <DialogContent className="max-w-7xl w-full min-w-[95vw] max-h-[95vh] h-[90vh] p-0 flex flex-col">
+        <DialogHeader className="px-6 pt-6 pb-4 shrink-0 w-full">
+          <DialogTitle>{brochureTitle}</DialogTitle>
+          <DialogDescription>{brochureDescription}</DialogDescription>
         </DialogHeader>
         <div className="flex-1 px-6 pb-6 min-h-0 overflow-hidden">
           <iframe
-            src="/assets/compan-brochure.pdf"
+            src={brochurePdfUrl}
             className="w-full h-full border rounded-md"
-            title="Company Brochure"
+            title={brochureTitle}
           />
         </div>
       </DialogContent>

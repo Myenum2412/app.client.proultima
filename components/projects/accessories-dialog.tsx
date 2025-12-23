@@ -16,66 +16,26 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { demoAccessories } from "@/public/assets";
 
-export const demoAccessories = [
-  {
-    dwgNo: "R-71",
-    elements: "Anchor Bolts",
-    description: "M16 x 150mm Anchor Bolts",
-    supportHeight: "150mm",
-    type: "Type A",
-    qty: 24,
-    lft: 36.0,
-    remarks: "Standard installation",
-  },
-  {
-    dwgNo: "R-45",
-    elements: "Welded Plates",
-    description: "Base Plate 300x300x20mm",
-    supportHeight: "20mm",
-    type: "Type B",
-    qty: 12,
-    lft: 18.0,
-    remarks: "Grade A36",
-  },
-  {
-    dwgNo: "R-28",
-    elements: "Connectors",
-    description: "Beam-to-Column Connector",
-    supportHeight: "N/A",
-    type: "Type C",
-    qty: 8,
-    lft: 12.0,
-    remarks: "Pre-fabricated",
-  },
-  {
-    dwgNo: "S-12",
-    elements: "Brackets",
-    description: "Angle Bracket 100x100x10mm",
-    supportHeight: "10mm",
-    type: "Type A",
-    qty: 16,
-    lft: 24.0,
-    remarks: "Hot-dip galvanized",
-  },
-  {
-    dwgNo: "R-88",
-    elements: "Stiffeners",
-    description: "Web Stiffener Plate",
-    supportHeight: "8mm",
-    type: "Type D",
-    qty: 20,
-    lft: 30.0,
-    remarks: "As per drawing",
-  },
-] as const;
+export type AccessoriesRow = {
+  dwgNo: string;
+  elements: string;
+  description: string;
+  supportHeight: string;
+  type: string;
+  qty: number;
+  lft: number;
+  remarks: string;
+};
 
-interface AccessoriesDialogProps {
+export function AccessoriesDialog({
+  open,
+  onOpenChange,
+}: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}
-
-export function AccessoriesDialog({ open, onOpenChange }: AccessoriesDialogProps) {
+}) {
   const data = demoAccessories;
 
   return (
@@ -120,8 +80,8 @@ export function AccessoriesDialog({ open, onOpenChange }: AccessoriesDialogProps
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.map((row) => (
-                    <TableRow key={row.dwgNo}>
+                  {data.map((row, index) => (
+                    <TableRow key={index}>
                       <TableCell className="px-4 py-4 text-center font-medium">
                         {row.dwgNo}
                       </TableCell>
@@ -137,11 +97,11 @@ export function AccessoriesDialog({ open, onOpenChange }: AccessoriesDialogProps
                       <TableCell className="px-4 py-4 text-center">
                         {row.type}
                       </TableCell>
-                      <TableCell className="px-4 py-4 text-center font-medium">
+                      <TableCell className="px-4 py-4 text-center">
                         {row.qty}
                       </TableCell>
-                      <TableCell className="px-4 py-4 text-center font-medium">
-                        {row.lft}
+                      <TableCell className="px-4 py-4 text-center">
+                        {row.lft.toFixed(1)}
                       </TableCell>
                       <TableCell className="px-4 py-4 text-center font-medium">
                         {row.remarks}

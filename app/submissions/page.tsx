@@ -1,56 +1,59 @@
+import type { Metadata } from "next";
 import { AppSidebar } from "@/components/app-sidebar";
-import Submissions from "@/components/Submissions/Submissions";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
+import type { SidebarUser } from "@/components/app-sidebar";
+import { TopHeader } from "@/components/app/top-header";
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { getSubmissionsServer, transformServerSubmission } from "@/lib/supabase/submissions-server";
+import { requireUser } from "@/lib/auth/server";
+import { SubmissionsTable } from "@/components/submissions/submissions-table";
+import { QueryBoundary } from "@/components/query/query-boundary";
 
-export default async function Page() {
-  // Fetch submissions server-side for SSR optimization
-  const serverSubmissions = await getSubmissionsServer();
-  const initialSubmissions = serverSubmissions.map(transformServerSubmission);
+export const metadata: Metadata = {
+  title: "Submissions",
+  description: "View and manage RFI submissions and submittals",
+};
+
+export default async function SubmissionsPage() {
+  const user = await requireUser();
+
+  const displayName =
+    (typeof user.user_metadata?.full_name === "string" &&
+      user.user_metadata.full_name) ||
+    (user.email ? user.email.split("@")[0] : "User");
+
+  const avatar =
+    (typeof user.user_metadata?.avatar_url === "string" &&
+      user.user_metadata.avatar_url) ||
+    "/image/profile.jpg";
+
+  const sidebarUser: SidebarUser = {
+    name: displayName,
+    email: user.email ?? "",
+    avatar,
+  };
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar user={sidebarUser} />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4 overflow-x-hidden">
-            <SidebarTrigger className="-ml-1" />
-            <Separator
-              orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4 overflow-x-hidden"
-            />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Building Your Application
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Submissions</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-        </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-x-hidden">
-          <Submissions initialSubmissions={initialSubmissions} />
+        <TopHeader
+          section="Submissions"
+          page="All Submissions"
+          search={{ placeholder: "Search submissions...", action: "/submissions", name: "q" }}
+        />
+        <div className="min-h-0 flex flex-1 flex-col gap-4 overflow-y-auto p-4 pt-0">
+          <QueryBoundary
+            loadingTitle="Loading submissions..."
+            loadingSubtitle="Fetching submission data"
+          >
+            <SubmissionsTable />
+          </QueryBoundary>
         </div>
       </SidebarInset>
     </SidebarProvider>
   );
 }
+
+
