@@ -119,7 +119,7 @@ export function ProjectsPageClient({
                 onClick={() => handleProjectClick(p.id)}
                 className={`min-w-[280px] rounded-xl border bg-background p-4 shadow-md hover:shadow-lg transition-shadow text-left ${
                   selectedProjectId === p.id
-                    ? "ring-2 ring-primary border-primary"
+                    ? "ring-2 ring-primary border-primary bg-background/80 backdrop-blur-sm"
                     : ""
                 }`}
               >

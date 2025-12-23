@@ -15,7 +15,8 @@ import type { BillingInvoiceRow } from "@/components/billing/invoice-columns";
 export function DashboardMetrics() {
   const [isEvaluationLogOpen, setIsEvaluationLogOpen] = useState(false);
   const [isActiveProjectsOpen, setIsActiveProjectsOpen] = useState(false);
-  const [isOutstandingPaymentOpen, setIsOutstandingPaymentOpen] = useState(false);
+  const [isOutstandingPaymentOpen, setIsOutstandingPaymentOpen] =
+    useState(false);
 
   // Fetch projects from Supabase
   const { data: projects = [] } = useQuery({
@@ -27,7 +28,10 @@ export function DashboardMetrics() {
   // Fetch invoices from Supabase
   const { data: invoicesData } = useQuery({
     queryKey: queryKeys.billingInvoices(),
-    queryFn: () => fetchJson<{ data: BillingInvoiceRow[]; pagination: any }>("/api/billing/invoices?page=1&pageSize=1000"),
+    queryFn: () =>
+      fetchJson<{ data: BillingInvoiceRow[]; pagination: any }>(
+        "/api/billing/invoices?page=1&pageSize=1000"
+      ),
     staleTime: 60_000,
   });
 
@@ -132,18 +136,9 @@ export function DashboardMetrics() {
   ];
 
   return (
-    <Card className="w-full shadow-lg overflow-hidden">
+    <Card className="w-full shadow-lg overflow-hidden relative ">
+      <div className="absolute inset-0 h-full w-full bg-section opacity-70 " />
       <CardHeader className="relative overflow-hidden">
-        <Image
-          src="/image/dashboard-bg.png"
-          alt=""
-          aria-hidden="true"
-          fill
-          sizes="100vw"
-          priority
-          className="object-cover opacity-25"
-        />
-        <div className="absolute inset-0 bg-linear-to-r from-white/90 via-white/70 to-white/20" />
         <div className="relative">
           <h1 className="text-xl font-semibold">Dashboard Overview</h1>
           <p className="text-sm text-muted-foreground">
@@ -151,7 +146,7 @@ export function DashboardMetrics() {
           </p>
         </div>
       </CardHeader>
-      <CardContent className="py-6">
+      <CardContent >
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
           {metrics.map((metric, index) => (
             <div
@@ -165,15 +160,21 @@ export function DashboardMetrics() {
               role={metric.clickable ? "button" : undefined}
               tabIndex={metric.clickable ? 0 : undefined}
               onKeyDown={(e) => {
-                if (metric.clickable && metric.onClick && (e.key === "Enter" || e.key === " ")) {
+                if (
+                  metric.clickable &&
+                  metric.onClick &&
+                  (e.key === "Enter" || e.key === " ")
+                ) {
                   e.preventDefault();
                   metric.onClick();
                 }
               }}
             >
-              <div className={`text-sm mb-2 font-medium ${
-                metric.labelColor || "text-muted-foreground"
-              }`}>
+              <div
+                className={`text-sm mb-2 font-medium ${
+                  metric.labelColor || "text-muted-foreground"
+                }`}
+              >
                 {metric.label}
               </div>
               <div className="flex items-baseline gap-2">
@@ -203,4 +204,3 @@ export function DashboardMetrics() {
     </Card>
   );
 }
-

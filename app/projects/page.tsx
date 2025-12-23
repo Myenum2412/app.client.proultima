@@ -9,19 +9,21 @@ import {
 } from "@/components/projects/project-overview";
 import { ProjectMaterialListManagement } from "@/components/projects/material-list-management";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { requireUser } from "@/lib/auth/server";
 import Image from "next/image";
 import { ProjectsPageClient } from "@/components/projects/projects-page-client";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getProjects, getProjectById, getAllDrawingsByProject } from "@/lib/supabase/queries";
+import {
+  getProjects,
+  getProjectById,
+  getAllDrawingsByProject,
+} from "@/lib/supabase/queries";
 
 export const metadata: Metadata = {
   title: "Projects",
-  description: "View and manage all your construction projects, drawings, and project details",
+  description:
+    "View and manage all your construction projects, drawings, and project details",
 };
 
 export default async function ProjectsPage({
@@ -35,7 +37,7 @@ export default async function ProjectsPage({
 
   // Fetch projects from Supabase
   const projectsData = await getProjects(supabase);
-  
+
   const projects = projectsData.map((p) => ({
     id: p.id,
     jobNumber: p.project_number,
@@ -43,11 +45,11 @@ export default async function ProjectsPage({
   }));
 
   // Get selected project ID from URL params, default to first project
-  const selectedProjectId = params.project || (projects[0]?.id || "");
-  
+  const selectedProjectId = params.project || projects[0]?.id || "";
+
   // Find the selected project
   const selectedProject = await getProjectById(supabase, selectedProjectId);
-  
+
   if (!selectedProject) {
     // Fallback to first project if not found
     const firstProject = projectsData[0];
@@ -109,32 +111,30 @@ export default async function ProjectsPage({
         <TopHeader
           section="Projects"
           page="All Projects"
-          search={{ placeholder: "Search projects...", action: "/projects", name: "q" }}
+          search={{
+            placeholder: "Search projects...",
+            action: "/projects",
+            name: "q",
+          }}
         />
-        <div className="min-h-0 flex flex-1 flex-col gap-4 overflow-y-auto p-4 pt-0">
-          <Card className="w-full shadow-lg overflow-hidden">
+        <div className=" flex flex-1 flex-col gap-4 overflow-y-auto p-4 pt-0">
+          <Card className="w-full shadow-lg overflow-hidden relative">
+            <div className="absolute inset-0 h-full w-full bg-section opacity-70 " />
             <CardHeader className="relative overflow-hidden">
-              <Image
-                src="/image/dashboard-bg.png"
-                alt=""
-                aria-hidden="true"
-                fill
-                sizes="100vw"
-                priority
-                className="object-cover opacity-25"
-              />
-              <div className="absolute inset-0 bg-linear-to-r from-white/90 via-white/70 to-white/20" />
               <div className="relative">
-                <h1 className="text-xl font-semibold">Project Drawings Overview</h1>
+                <h1 className="text-xl font-semibold">
+                  Project Drawings Overview
+                </h1>
                 <p className="text-sm text-muted-foreground">
-                  Select a project to view drawings, submissions, invoices, logs, and change orders
+                  Select a project to view drawings, submissions, invoices,
+                  logs, and change orders
                 </p>
               </div>
             </CardHeader>
 
-            <CardContent>
-              <ProjectsPageClient 
-                projects={projects} 
+            <CardContent className="-mt-4">
+              <ProjectsPageClient
+                projects={projects}
                 selectedProjectId={selectedProjectId}
               />
             </CardContent>
@@ -168,5 +168,3 @@ export default async function ProjectsPage({
     </SidebarProvider>
   );
 }
-
-
