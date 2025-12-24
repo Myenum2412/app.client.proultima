@@ -214,7 +214,7 @@ export function ChatInterface({ projectId }: { projectId?: string }) {
   }
 
   return (
-    <div className="min-h-0 flex flex-1 flex-col p-4 pt-0">
+    <div className="min-h-0 flex flex-1 flex-col p-6">
       {/* Chat Header */}
       <div className="flex items-center justify-between border-b pb-4 mb-4">
         <div className="flex items-center gap-4">

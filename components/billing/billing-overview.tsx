@@ -77,18 +77,9 @@ export function BillingOverview() {
   ];
 
   return (
-    <Card className="w-full shadow-lg overflow-hidden">
+    <Card className="w-full shadow-lg overflow-hidden relative">
+    <div className="absolute inset-0 h-full w-full bg-section opacity-70 border-b" />
       <CardHeader className="relative overflow-hidden">
-        <Image
-          src="/image/dashboard-bg.png"
-          alt=""
-          aria-hidden="true"
-          fill
-          sizes="100vw"
-          priority
-          className="object-cover opacity-25"
-        />
-        <div className="absolute inset-0 bg-linear-to-r from-white/90 via-white/70 to-white/20" />
         <div className="relative">
           <h1 className="text-xl font-semibold">Billing Overview</h1>
           <p className="text-sm text-muted-foreground">
@@ -96,7 +87,7 @@ export function BillingOverview() {
           </p>
         </div>
       </CardHeader>
-      <CardContent className="py-6">
+      <CardContent >
         <div className="grid grid-cols-6 gap-4">
           {metrics.map((metric, index) => (
             <div

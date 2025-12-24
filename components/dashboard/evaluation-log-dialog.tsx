@@ -52,7 +52,7 @@ export function EvaluationLogDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-screen-xl w-full min-w-[95vw] max-h-[75vh] h-[70vh] p-0 flex flex-col">
+      <DialogContent className="max-w-screen-xl w-full min-w-[95vw] max-h-[95vh] h-[90vh] p-0 flex flex-col">
         <DialogHeader className="px-6 pt-6 pb-4 shrink-0 w-full">
           <DialogTitle>EVALUATION LOG</DialogTitle>
           <DialogDescription>

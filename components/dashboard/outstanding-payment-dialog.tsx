@@ -164,7 +164,7 @@ export function OutstandingPaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-screen-xl w-full min-w-[95vw] max-h-[85vh] h-[80vh] p-0 flex flex-col">
+      <DialogContent className="max-w-screen-xl w-full min-w-[95vw] max-h-[95vh] h-[90vh] p-0 flex flex-col">
         <DialogHeader className="px-6 pt-6 pb-4 shrink-0 w-full border-b">
           <DialogTitle>Outstanding Payment Details</DialogTitle>
           <DialogDescription>

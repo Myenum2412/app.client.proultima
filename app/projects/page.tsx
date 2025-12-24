@@ -141,20 +141,9 @@ export default async function ProjectsPage({
           </Card>
 
           {/* Show selected project details */}
-          <Card className="w-full shadow-lg overflow-hidden">
-            <CardHeader className="relative overflow-hidden">
-              <Image
-                src="/image/dashboard-bg.png"
-                alt=""
-                aria-hidden="true"
-                fill
-                sizes="100vw"
-                priority
-                className="object-cover opacity-25"
-              />
-              <div className="absolute inset-0 bg-linear-to-r from-white/90 via-white/70 to-white/20" />
-            </CardHeader>
-            <CardContent className="py-6">
+          <Card className="w-full shadow-lg overflow-hidden p-0">
+           
+            <CardContent className="p-0">
               <div className="animate-in fade-in slide-in-from-bottom-1 duration-300">
                 <ProjectOverview data={overview} />
               </div>

@@ -69,7 +69,7 @@ export function ProjectOverview({ data }: { data: ProjectOverviewData }) {
 
   return (
     <Card className="overflow-hidden">
-      <CardContent className="py-4">
+      <CardContent >
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="text-lg font-semibold">

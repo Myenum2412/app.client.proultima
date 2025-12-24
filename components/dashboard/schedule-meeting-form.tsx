@@ -95,9 +95,9 @@ export function ScheduleMeetingForm() {
   return (
     <Card className="w-full shadow-lg overflow-hidden">
       <CardHeader className="border-b">
-        <CardTitle className="text-lg">Schedule Meeting</CardTitle>
+        <CardTitle className="text-lg font-semibold -mb-4">Schedule Meeting</CardTitle>
       </CardHeader>
-      <CardContent className="pt-4">
+      <CardContent >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Meeting Title */}
           <div className="space-y-2">
